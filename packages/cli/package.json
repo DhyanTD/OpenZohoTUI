@@ -1,0 +1,18 @@
+{
+  "name": "@company/open-zoho-connect",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": { "ozc": "./dist/index.js" },
+  "types": "./dist/index.d.ts",
+  "scripts": { "build": "tsc -p tsconfig.json" },
+  "dependencies": {
+    "@open-zoho-connect/core": "*",
+    "@open-zoho-connect/zoho-client": "*",
+    "commander": "^14.0.0",
+    "fuse.js": "^7.1.0",
+    "ink": "^6.2.3",
+    "react": "^19.1.1",
+    "zod": "^4.0.17"
+  }
+}

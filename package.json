@@ -1,0 +1,32 @@
+{
+  "name": "open-zoho-connect",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "npm run build --workspace @open-zoho-connect/core && npm run build --workspace @open-zoho-connect/zoho-client && npm run build --workspace @company/open-zoho-connect && npm run build --workspace @open-zoho-connect/broker",
+    "pretypecheck": "npm run build",
+    "typecheck": "tsc --noEmit",
+    "pretest": "npm run build",
+    "test": "vitest run",
+    "dev:cli": "tsx packages/cli/src/index.ts",
+    "dev:broker": "tsx packages/broker/src/index.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.1",
+    "@types/react": "^19.1.10",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@open-zoho-connect/broker": "*",
+    "@open-zoho-connect/core": "*",
+    "@open-zoho-connect/zoho-client": "*"
+  }
+}
