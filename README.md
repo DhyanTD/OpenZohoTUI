@@ -7,6 +7,8 @@
 - `packages/zoho-client`: runtime-validated Zoho Projects v3 client
 - `packages/broker`: public OAuth device-flow and refresh broker backed by Redis
 
+See [COMMANDS.md](./COMMANDS.md) for the complete command reference.
+
 ## Development
 
 Requires Node.js 22 or newer.
