@@ -3,16 +3,10 @@ import Fastify from 'fastify'
 import rateLimit from '@fastify/rate-limit'
 import { Redis } from 'ioredis'
 import { z } from 'zod'
+import { loadBrokerEnvFile, parseBrokerEnvironment } from './environment.js'
 
-const env = z.object({
-  ZOHO_CLIENT_ID: z.string().min(1),
-  ZOHO_CLIENT_SECRET: z.string().min(1),
-  REDIS_URL: z.url(),
-  BROKER_HOST: z.string().default('127.0.0.1'),
-  BROKER_PORT: z.coerce.number().int().positive().default(8787),
-  ZOHO_ACCOUNTS_SERVER: z.url().default('https://accounts.zoho.com'),
-  ZOHO_PROJECTS_API_ORIGIN: z.url().default('https://projectsapi.zoho.com'),
-}).parse(process.env)
+loadBrokerEnvFile()
+const env = parseBrokerEnvironment()
 
 const redis = new Redis(env.REDIS_URL, { lazyConnect: true, maxRetriesPerRequest: 2 })
 const app = Fastify({

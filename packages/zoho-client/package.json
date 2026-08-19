@@ -1,12 +1,13 @@
 {
   "name": "@open-zoho-tui/zoho-client",
-  "private": true,
+  "version": "0.1.0",
   "type": "module",
+  "files": ["dist"],
   "exports": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": { "build": "tsc -p tsconfig.json" },
   "dependencies": {
-    "@open-zoho-tui/core": "*",
+    "@open-zoho-tui/core": "^0.1.0",
     "zod": "^4.0.17"
   }
 }

@@ -1,9 +1,10 @@
 {
   "name": "@open-zoho-tui/core",
-  "private": true,
+  "version": "0.1.0",
   "type": "module",
+  "files": ["dist"],
   "exports": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "scripts": { "build": "tsc -p tsconfig.json" },
+  "scripts": { "build": "tsc -p tsconfig.json && node ../../scripts/write-build-config.mjs" },
   "dependencies": { "zod": "^4.0.17" }
 }

@@ -1,14 +1,14 @@
 {
-  "name": "@company/open-zoho-tui",
+  "name": "@dhyantd/open-zoho-tui",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "bin": { "ozt": "./dist/index.js" },
+  "files": ["dist"],
   "types": "./dist/index.d.ts",
   "scripts": { "build": "tsc -p tsconfig.json" },
   "dependencies": {
-    "@open-zoho-tui/core": "*",
-    "@open-zoho-tui/zoho-client": "*",
+    "@open-zoho-tui/core": "^0.1.0",
+    "@open-zoho-tui/zoho-client": "^0.1.0",
     "commander": "^14.0.0",
     "fuse.js": "^7.1.0",
     "ink": "^6.2.3",

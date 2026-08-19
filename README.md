@@ -9,6 +9,20 @@
 
 See [COMMANDS.md](./COMMANDS.md) for the complete command reference.
 
+## Installation
+
+Publish `@open-zoho-tui/core`, `@open-zoho-tui/zoho-client`, and then
+`@dhyantd/open-zoho-tui` to the company npm registry. Users install only the
+CLI package:
+
+```sh
+npm install -g @dhyantd/open-zoho-tui
+ozt --help
+```
+
+The OAuth broker is deployed as a service; it is not installed on user
+machines.
+
 ## Development
 
 Requires Node.js 22 or newer.
@@ -23,7 +37,6 @@ npm run typecheck
 Run the CLI from source after building the workspace dependencies:
 
 ```sh
-export OZT_CREDENTIAL_KEY='replace-with-a-long-local-secret'
 npm run dev:cli -- --help
 ```
 
@@ -31,15 +44,22 @@ Install a global development link:
 
 ```sh
 npm run build
-npm link --workspace @company/open-zoho-tui
+npm link --workspace @dhyantd/open-zoho-tui
 ozt --help
 ```
 
 Re-run `npm run build` after changing source files. The linked `ozt` command executes `packages/cli/dist/index.js`.
 
-Non-secret state defaults to the platform application-data directory. Set `OZT_DATA_DIR` during development or testing to isolate it.
+Non-secret state defaults to the platform application-data directory. Set
+`OZT_DATA_DIR` during development or testing to isolate it. OZT generates a
+private 256-bit credential-encryption key on first login. `OZT_CREDENTIAL_KEY`
+is an optional override for centrally managed environments; when provided, it
+must contain at least 16 characters and must remain consistent across runs.
 
 ## Broker
+
+Copy `.env.example` to `.env`. The broker loads `.env` automatically, and
+variables already exported by the shell take precedence.
 
 The broker requires:
 
@@ -47,24 +67,39 @@ The broker requires:
 ZOHO_CLIENT_ID
 ZOHO_CLIENT_SECRET
 REDIS_URL
-ZOHO_ACCOUNTS_SERVER
-ZOHO_PROJECTS_API_ORIGIN
 ```
 
-Optional settings are `BROKER_HOST` and `BROKER_PORT`. Deploy behind TLS. Request bodies and authorization headers are redacted from logs. Refresh and revoke requests require the per-installation credential returned by a completed device login.
+Optional settings are `ZOHO_ACCOUNTS_SERVER`, `ZOHO_PROJECTS_API_ORIGIN`,
+`BROKER_HOST`, and `BROKER_PORT`. Deploy behind TLS. Request bodies and
+authorization headers are redacted from logs. Refresh and revoke requests
+require the per-installation credential returned by a completed device login.
 
 ```sh
 npm run dev:broker
 ```
 
+To publish the npm CLI with a company broker URL already configured, set
+`OZT_DEFAULT_BROKER_URL` in `.env` or export it while building:
+
+```sh
+OZT_DEFAULT_BROKER_URL=https://ozt-auth.example.com npm run build
+```
+
+An exported runtime `OZT_BROKER_URL` has highest priority, followed by a URL
+saved through Settings, `ozt config set brokerUrl`, or `ozt init --broker-url`.
+The embedded build URL is used next; an empty build value falls back to
+`http://127.0.0.1:8787`.
+
 ## First Login
 
 ```sh
-ozt config set brokerUrl https://ozt-auth.example.com
 ozt auth login
 ozt init --portal PORTAL_ID --project PROJECT_ID --billing Billable --timezone UTC
 ozt task list
 ```
+
+If the distributed package does not embed the correct broker, override it in
+Settings or run `ozt config set brokerUrl URL` before login.
 
 Running `ozt` with no arguments opens the interactive Tasks, Time Logs, and
 Settings workspace. It provides searchable selectors for portals, projects,

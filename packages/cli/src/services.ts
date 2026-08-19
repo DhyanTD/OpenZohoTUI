@@ -290,6 +290,7 @@ export class OztServices {
   }
 
   async initialize(input: {
+    brokerUrl?: string
     portalId: string
     projectId?: string
     tasklistId?: string

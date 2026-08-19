@@ -10,7 +10,7 @@ Build a TypeScript team CLI named `ozt`, distributed as a private npm package. I
 ## User Flow and Commands
 
 - Company admin registers a multi-datacenter, non-browser OAuth application and deploys the authentication broker.
-- User installs with `npm install -g @company/open-zoho-tui`.
+- User installs with `npm install -g @dhyantd/open-zoho-tui`.
 - `ozt auth login` displays Zoho’s verification URL/code. After one browser consent, later usage remains terminal-only.
 - `ozt init` selects the default portal, project, billing preference, timezone, and optional task-list default.
 - Running `ozt` without arguments opens the TUI:

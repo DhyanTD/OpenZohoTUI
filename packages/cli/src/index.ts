@@ -48,12 +48,14 @@ config.command('unset').argument('<key>').action(async (key: string) => {
 })
 
 program.command('init').requiredOption('--portal <id>').option('--project <id>').option('--tasklist <id>')
+  .option('--broker-url <url>')
   .addOption(new Option('--billing <value>').choices(['Billable', 'Non Billable']))
   .option('--timezone <iana>').action(async (options) => {
     const input = {
       portalId: String(options.portal),
       ...(options.project ? { projectId: String(options.project) } : {}),
       ...(options.tasklist ? { tasklistId: String(options.tasklist) } : {}),
+      ...(options.brokerUrl ? { brokerUrl: String(options.brokerUrl) } : {}),
       ...(options.billing ? { billing: billingSchema.parse(options.billing) } : {}),
       ...(options.timezone ? { timezone: String(options.timezone) } : {}),
     }

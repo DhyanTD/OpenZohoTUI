@@ -30,12 +30,23 @@ npm test
 npm run typecheck
 ```
 
+To embed a deployed company broker as the npm CLI's default, set
+`OZT_DEFAULT_BROKER_URL` in the repository `.env` before building, or run:
+
+```bash
+OZT_DEFAULT_BROKER_URL=https://ozt-auth.example.com npm run build
+```
+
+Leave it empty to package the local `http://127.0.0.1:8787` default. Users can
+still override it through OZT Settings, saved configuration, or the runtime
+`OZT_BROKER_URL` environment variable.
+
 ## Install the Local CLI
 
 Create a global development link:
 
 ```bash
-npm link --workspace @company/open-zoho-tui
+npm link --workspace @dhyantd/open-zoho-tui
 ```
 
 Verify the command:
@@ -54,7 +65,7 @@ npm run build
 Remove the global link when it is no longer needed:
 
 ```bash
-npm unlink -g @company/open-zoho-tui
+npm unlink -g @dhyantd/open-zoho-tui
 ```
 
 ## Start Redis
@@ -91,19 +102,14 @@ docker stop ozt-redis
 
 ## Configure the Broker
 
-Open another terminal in the repository and export the broker settings:
+Copy the template and edit the broker settings:
 
 ```bash
-export ZOHO_CLIENT_ID='your-zoho-client-id'
-export ZOHO_CLIENT_SECRET='your-zoho-client-secret'
-export REDIS_URL='redis://127.0.0.1:6379'
-
-export ZOHO_ACCOUNTS_SERVER='https://accounts.zoho.com'
-export ZOHO_PROJECTS_API_ORIGIN='https://projectsapi.zoho.com'
-
-export BROKER_HOST='127.0.0.1'
-export BROKER_PORT='8787'
+cp .env.example .env
 ```
+
+The broker automatically loads the repository-root `.env`. Values exported in
+the shell that launches the broker take precedence over values in the file.
 
 `ZOHO_ACCOUNTS_SERVER` should initially match the datacenter where the OAuth application was registered. The broker handles Zoho's `other_dc` response for users in other enabled datacenters.
 
@@ -147,13 +153,19 @@ Expected response:
 
 ## Configure the CLI
 
-The CLI encrypts the local Zoho refresh token. Set a development credential key containing at least 16 characters:
+The CLI encrypts the local Zoho refresh token. By default, OZT generates a
+random 256-bit key during the first login and stores it with owner-only
+permissions. No user-entered key is required.
+
+For a centrally managed development environment, you may override that key with
+at least 16 characters:
 
 ```bash
 export OZT_CREDENTIAL_KEY='local-development-secret-at-least-16-characters'
 ```
 
-Use the same value in future terminal sessions. A different value cannot decrypt credentials created with the original key.
+If supplied, use the same value in future terminal sessions. A different or
+missing override cannot decrypt credentials created with the original override.
 
 To isolate local test data from normal application state, optionally set:
 
@@ -161,7 +173,8 @@ To isolate local test data from normal application state, optionally set:
 export OZT_DATA_DIR=/tmp/ozt-local
 ```
 
-Point the CLI at the local broker:
+Point the CLI at the local broker only if it was not embedded as the package
+default:
 
 ```bash
 ozt config set brokerUrl http://127.0.0.1:8787
@@ -222,9 +235,9 @@ ozt time list
 ozt time sync
 ```
 
-## Use an Environment File
+## Environment Precedence
 
-The broker does not load `.env` files itself. Create a repository-root `.env` file if desired:
+The broker loads the repository-root `.env` automatically. For example:
 
 ```dotenv
 ZOHO_CLIENT_ID=your-client-id
@@ -236,16 +249,21 @@ BROKER_HOST=127.0.0.1
 BROKER_PORT=8787
 ```
 
-Load it through the shell before starting the broker:
+Start the broker normally:
 
 ```bash
-set -a
-source .env
-set +a
 npm run dev:broker
 ```
 
-The repository ignores `.env`. Never commit or share the file because it contains the Zoho client secret.
+To override one file value for a single launch, export it first:
+
+```bash
+export BROKER_PORT=8788
+npm run dev:broker
+```
+
+The repository ignores `.env`. Never commit or share the file because it
+contains the Zoho client secret.
 
 ## Troubleshooting
 
@@ -271,7 +289,9 @@ Do not share that output because it may include the Zoho client secret.
 
 ### CLI Cannot Decrypt Credentials
 
-Restore the same `OZT_CREDENTIAL_KEY` used during login. To discard the isolated local test state and authenticate again:
+If an `OZT_CREDENTIAL_KEY` override was used during login, restore the same
+value. When using the generated default, preserve `credential.key` in the OZT
+data directory. To discard the isolated local test state and authenticate again:
 
 ```bash
 rm -rf /tmp/ozt-local

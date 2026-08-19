@@ -139,7 +139,13 @@ waits for authorization, and stores the resulting credential locally.
 ozt auth login
 ```
 
-The broker URL must be configured first with `ozt config set brokerUrl URL`.
+OZT uses the packaged broker URL by default. It can be overridden through
+Settings, `ozt config set brokerUrl URL`, `ozt init --broker-url URL`, or the
+runtime `OZT_BROKER_URL` environment variable.
+
+On first login, OZT generates a private local key to encrypt the stored Zoho
+credential. Users do not need to enter a key. `OZT_CREDENTIAL_KEY` is an
+optional managed override; blank or unset uses the generated local key.
 
 ### `ozt auth status`
 
@@ -172,6 +178,7 @@ ozt init --portal <id> [options]
 | `--portal <id>` | Yes | Default Zoho Projects portal ID. |
 | `--project <id>` | No | Default project ID. |
 | `--tasklist <id>` | No | Default task-list ID. |
+| `--broker-url <url>` | No | Override the broker URL packaged with the CLI. |
 | `--billing <value>` | No | Default billing status: `Billable` or `Non Billable`. |
 | `--timezone <iana>` | No | IANA timezone, such as `Asia/Kolkata` or `UTC`. |
 
@@ -191,7 +198,7 @@ Supported configuration keys are:
 
 | Key | Purpose |
 | --- | --- |
-| `brokerUrl` | Company OAuth broker base URL. This key cannot be unset. |
+| `brokerUrl` | Company OAuth broker base URL. Defaults to the URL embedded when the npm package was built. This key cannot be unset. |
 | `portalId` | Default Zoho Projects portal ID. |
 | `projectId` | Default project ID. |
 | `tasklistId` | Default task-list ID. |
@@ -225,6 +232,11 @@ Remove an optional configuration value. `brokerUrl` cannot be unset.
 ```sh
 ozt config unset tasklistId
 ```
+
+Broker URL precedence is: runtime `OZT_BROKER_URL`, saved `brokerUrl`, embedded
+`OZT_DEFAULT_BROKER_URL`, then `http://127.0.0.1:8787`. The default is embedded
+by the package maintainer during `npm run build`; it is not read dynamically
+from the maintainer's environment after installation.
 
 ## Tasks
 

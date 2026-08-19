@@ -2,8 +2,29 @@ import { mkdir, open, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { homedir } from 'node:os'
 import { randomUUID } from 'node:crypto'
-import type { ZodType } from 'zod'
+import { z, type ZodType } from 'zod'
 import { configSchema, localStateSchema, type Config, type LocalState } from './schemas.js'
+
+const localBrokerUrl = 'http://127.0.0.1:8787'
+const buildConfigSchema = z.object({ brokerUrl: z.url() })
+
+async function bundledBrokerUrl(): Promise<string> {
+  try {
+    const path = new URL('./build-config.json', import.meta.url)
+    return buildConfigSchema.parse(JSON.parse(await readFile(path, 'utf8'))).brokerUrl
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return localBrokerUrl
+    throw error
+  }
+}
+
+export function resolveBrokerUrl(input: {
+  runtime?: string | undefined
+  saved?: string | undefined
+  bundled?: string | undefined
+}): string {
+  return input.runtime?.trim() || input.saved?.trim() || input.bundled?.trim() || localBrokerUrl
+}
 
 export function dataDirectory(): string {
   if (process.env.OZT_DATA_DIR) return process.env.OZT_DATA_DIR
@@ -46,8 +67,13 @@ async function withLock<T>(path: string, action: () => Promise<T>): Promise<T> {
 }
 
 export async function readConfig(): Promise<Config> {
-  return readValidated(join(dataDirectory(), 'config.json'), configSchema, {
-    brokerUrl: process.env.OZT_BROKER_URL ?? 'http://127.0.0.1:8787',
+  const bundled = await bundledBrokerUrl()
+  const saved = await readValidated(join(dataDirectory(), 'config.json'), configSchema, {
+    brokerUrl: bundled,
+  })
+  return configSchema.parse({
+    ...saved,
+    brokerUrl: resolveBrokerUrl({ runtime: process.env.OZT_BROKER_URL, saved: saved.brokerUrl, bundled }),
   })
 }
 

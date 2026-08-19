@@ -9,7 +9,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "npm run build --workspace @open-zoho-tui/core && npm run build --workspace @open-zoho-tui/zoho-client && npm run build --workspace @company/open-zoho-tui && npm run build --workspace @open-zoho-tui/broker",
+    "build": "npm run build --workspace @open-zoho-tui/core && npm run build --workspace @open-zoho-tui/zoho-client && npm run build --workspace @dhyantd/open-zoho-tui && npm run build --workspace @open-zoho-tui/broker",
     "pretypecheck": "npm run build",
     "typecheck": "tsc --noEmit",
     "pretest": "npm run build",
