@@ -117,12 +117,14 @@ Settings and guides the user through the missing choices.
 
 Task creation discovers task lists and custom-field metadata from Zoho. Custom
 fields are shown by display label, with named choices for metadata-backed pick
-lists. New tasks are assigned to the authenticated Zoho user by default. Select
-the `[ Save ]` row and press `Enter` when a terminal does not report
-`Ctrl+Shift+S`; validation and Zoho API failures remain visible in the form so
-the entered values can be corrected. Timer stop and manual-time forms can save
-locally or save and sync immediately. The active timer is durable and remains
-running after the TUI exits.
+lists. OZC assigns a new task to the authenticated Zoho user when that user can
+be matched to an active project member; otherwise, it creates the task
+unassigned. A task list is required; the configured default is preselected when
+available. Select the `[ Save ]` row and press `Enter` when a terminal does not
+report `Ctrl+Shift+S`; validation and Zoho API failures remain visible in the
+form so the entered values can be corrected. Timer stop and manual-time forms
+can save locally or save and sync immediately. The active timer is durable and
+remains running after the TUI exits.
 
 Direct commands below remain available for scripting and automation.
 
@@ -250,8 +252,9 @@ ozc task show 1234567890123
 
 ### `ozc task create`
 
-Create a task in the configured project and assign it to the authenticated Zoho
-user. The user must be an active member of the configured project.
+Create a task in the configured project. OZC assigns it to the authenticated
+Zoho user when that user matches an active project member, and otherwise creates
+it unassigned.
 
 ```sh
 ozc task create --name <name> [options]
@@ -260,9 +263,9 @@ ozc task create --name <name> [options]
 | Option | Required | Meaning |
 | --- | --- | --- |
 | `--name <name>` | Yes | Task name. |
-| `--tasklist <id>` | No | Destination task-list ID. |
+| `--tasklist <id>` | Conditional | Destination task-list ID. Uses the configured `tasklistId` when omitted; one of them is required. |
 | `--description <text>` | No | Task description. |
-| `--field <name=value...>` | No | One or more custom field values. |
+| `--field <name=value...>` | No | One or more v3 custom-field API names and values. |
 
 Examples:
 

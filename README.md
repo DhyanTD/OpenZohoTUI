@@ -75,7 +75,9 @@ The broker requests `ZohoProjects.tasklists.READ`,
 `AaaServer.profile.Read` in addition to the portal, project, task, and timesheet
 scopes. Existing users must run `ozc auth logout` and authenticate once after
 deploying this version. The metadata scopes power named TUI forms; the user and
-profile scopes let task creation assign the authenticated user by default.
+profile scopes let task creation assign the authenticated user when OZC can
+match that account to an active project member. Otherwise, the task is created
+unassigned.
 
 The Projects API origin is broker-controlled because Zoho's OAuth `api_domain` and Projects API origin are not interchangeable. Validate `ZOHO_PROJECTS_API_ORIGIN`, scopes, task mutation methods, and time-log payloads against the company sandbox before production use.
 

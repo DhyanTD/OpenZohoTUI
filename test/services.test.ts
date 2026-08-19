@@ -17,8 +17,22 @@ describe('task creator assignment', () => {
 
     expect(buildTaskCreatePayload({ name: 'New ticket', tasklistId: '12' }, user)).toEqual({
       name: 'New ticket',
+      tasklist: { id: '12' },
       assignee: { zpuid: '4000000002143' },
-      tasklist_id: '12',
+    })
+  })
+
+  it('creates an unassigned payload when the authenticated user is not a project member', () => {
+    expect(buildTaskCreatePayload({
+      name: 'New ticket',
+      tasklistId: '12',
+      description: 'Investigate',
+      fields: { cf_priority: 'High' },
+    })).toEqual({
+      cf_priority: 'High',
+      name: 'New ticket',
+      tasklist: { id: '12' },
+      description: 'Investigate',
     })
   })
 

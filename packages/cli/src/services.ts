@@ -113,13 +113,16 @@ export function findProjectUserByEmail(users: ProjectUser[], email: string): Pro
   return users.find((user) => user.active !== false && user.email.trim().toLowerCase() === normalized)
 }
 
-export function buildTaskCreatePayload(input: TaskCreateInput, assignee: ProjectUser): Record<string, unknown> {
+export function buildTaskCreatePayload(
+  input: TaskCreateInput & { tasklistId: string },
+  assignee?: ProjectUser,
+): Record<string, unknown> {
   return {
+    ...(input.fields ?? {}),
     name: input.name,
-    assignee: { zpuid: assignee.zpuid },
-    ...(input.tasklistId ? { tasklist_id: input.tasklistId } : {}),
+    tasklist: { id: input.tasklistId },
+    ...(assignee ? { assignee: { zpuid: assignee.zpuid } } : {}),
     ...(input.description ? { description: input.description } : {}),
-    ...(input.fields ? { custom_fields: input.fields } : {}),
   }
 }
 
@@ -227,7 +230,7 @@ export class OzcServices {
     client: ZohoProjectsClient,
     portalId: string,
     projectId: string,
-  ): Promise<ProjectUser> {
+  ): Promise<ProjectUser | undefined> {
     try {
       const [email, users] = await Promise.all([
         this.currentUserEmail(),
@@ -238,16 +241,12 @@ export class OzcServices {
           () => client.listProjectUsers(portalId, projectId),
         ),
       ])
-      const user = findProjectUserByEmail(users, email)
-      if (!user) {
-        throw new Error(`The authenticated Zoho user (${email}) is not an active member of this project, so OZC cannot assign the new task to you`)
-      }
-      return user
-    } catch (error) {
-      if (error instanceof ZohoError && (error.status === 401 || error.status === 403)) {
-        throw new Error('Zoho cannot resolve your project user with the current authorization. Run `ozc auth logout`, then sign in again to grant the project-user scope.')
-      }
-      throw error
+      return findProjectUserByEmail(users, email)
+    } catch {
+      // Assignment is a convenience, not a prerequisite for creating a task.
+      // Zoho accepts task creation without an assignee, so discovery failures
+      // should not prevent the user's primary action.
+      return undefined
     }
   }
 
@@ -413,9 +412,17 @@ export class OzcServices {
   }
 
   async createTask(input: TaskCreateInput): Promise<Task> {
+    const tasklistId = input.tasklistId ?? (await readConfig()).tasklistId
+    if (!tasklistId) {
+      throw new Error('Select a task list or configure a default task list before creating a task')
+    }
     const { client, portalId, projectId } = await this.context(true)
     const assignee = await this.currentProjectUser(client, portalId, projectId!)
-    const task = await client.createTask(portalId, projectId!, buildTaskCreatePayload(input, assignee))
+    const task = await client.createTask(
+      portalId,
+      projectId!,
+      buildTaskCreatePayload({ ...input, tasklistId }, assignee),
+    )
     this.clearCache('tasks:')
     return task
   }
@@ -425,7 +432,7 @@ export class OzcServices {
     const match = resolveTask(reference, await this.listTasks())
     const task = await client.updateTask(portalId, projectId!, match.id, {
       ...(input.name ? { name: input.name } : {}),
-      ...(input.statusId ? { status_id: input.statusId } : {}),
+      ...(input.statusId ? { status: { id: input.statusId } } : {}),
       ...(input.description !== undefined ? { description: input.description } : {}),
     })
     this.clearCache('tasks:')
@@ -435,7 +442,8 @@ export class OzcServices {
   async moveTask(reference: string, tasklistId: string): Promise<Task> {
     const { client, portalId, projectId } = await this.context(true)
     const match = resolveTask(reference, await this.listTasks())
-    const task = await client.updateTask(portalId, projectId!, match.id, { tasklist_id: tasklistId })
+    await client.moveTask(portalId, projectId!, match.id, tasklistId)
+    const task = await client.showTask(portalId, projectId!, match.id)
     this.clearCache('tasks:')
     return task
   }

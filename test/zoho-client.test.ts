@@ -116,4 +116,15 @@ describe('ZohoProjectsClient discovery APIs', () => {
       module: { id: '31', type: 'task' },
     })
   })
+
+  it('uses the v3 move action and target task-list parameter', async () => {
+    const fetcher = vi.fn<typeof fetch>(async () => json({}))
+    const client = new ZohoProjectsClient({ origin: 'https://projectsapi.example.com', accessToken: async () => 'token', fetch: fetcher })
+
+    await client.moveTask('7', '9', '31', '12')
+    const [request, init] = fetcher.mock.calls[0]!
+    expect(new URL(String(request)).pathname).toBe('/api/v3/portal/7/projects/9/tasks/31/move')
+    expect(init?.method).toBe('POST')
+    expect(JSON.parse(String(init?.body))).toEqual({ target_tasklist_id: '12' })
+  })
 })

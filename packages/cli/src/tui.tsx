@@ -115,10 +115,11 @@ function portalName(portal: Portal): string {
   return portal.portal_name ?? portal.org_name ?? portal.id
 }
 
-function fieldOptions(field: ModuleField): Choice[] {
+export function fieldOptions(field: ModuleField): Choice[] {
+  const usesDisplayValue = field.type.toLowerCase() === 'picklist'
   return (field.pick_list_values ?? field.options ?? [])
     .filter(({ id, value }) => id && value)
-    .map(({ id, value }) => ({ id, label: value }))
+    .map(({ id, value }) => ({ id: usesDisplayValue ? value : id, label: value }))
 }
 
 function customFields(fields: ModuleField[]): ModuleField[] {
@@ -452,8 +453,8 @@ function App({ services }: { services: OzcServices }) {
       const formFields: FormField[] = [
         { name: 'name', label: 'Name', value: '', type: 'text', required: true },
         {
-          name: 'tasklist', label: 'Task list', value: config.tasklistId ?? '', type: 'choice',
-          options: [{ id: '', label: '(project default)' }, ...lists.map(({ id, name }) => ({ id, label: name }))],
+          name: 'tasklist', label: 'Task list', value: config.tasklistId ?? '', type: 'choice', required: true,
+          options: [{ id: '', label: '(select task list)' }, ...lists.map(({ id, name }) => ({ id, label: name }))],
         },
         { name: 'description', label: 'Description', value: '', type: 'multiline' },
         ...customFields(metadata).map((field): FormField => {

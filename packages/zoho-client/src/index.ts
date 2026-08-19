@@ -337,6 +337,14 @@ export class ZohoProjectsClient {
     )
   }
 
+  async moveTask(portalId: string, projectId: string, taskId: string, tasklistId: string): Promise<void> {
+    await this.request(
+      `/api/v3/portal/${encodeURIComponent(portalId)}/projects/${encodeURIComponent(projectId)}/tasks/${encodeURIComponent(taskId)}/move`,
+      z.unknown(),
+      { method: 'POST', body: JSON.stringify({ target_tasklist_id: tasklistId }) },
+    )
+  }
+
   async addTimeLog(portalId: string, projectId: string, taskId: string, input: Record<string, unknown>): Promise<string> {
     const result = await this.request(
       `/api/v3/portal/${encodeURIComponent(portalId)}/projects/${encodeURIComponent(projectId)}/log`,

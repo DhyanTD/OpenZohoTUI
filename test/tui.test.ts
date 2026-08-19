@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { filterTasks, formatElapsed, formatMinutes, isSaveShortcut } from '../packages/cli/src/tui.js'
+import { moduleFieldSchema } from '@open-zoho-connect/zoho-client'
+import { fieldOptions, filterTasks, formatElapsed, formatMinutes, isSaveShortcut } from '../packages/cli/src/tui.js'
 
 describe('TUI task search', () => {
   const tasks = [
@@ -36,5 +37,16 @@ describe('TUI save shortcut', () => {
 
   it('supports Alt+S when a terminal cannot report Ctrl+Shift+S separately', () => {
     expect(isSaveShortcut('s', { ctrl: false, shift: false, meta: true })).toBe(true)
+  })
+})
+
+describe('TUI custom fields', () => {
+  it('submits a pick-list display value instead of its metadata ID', () => {
+    const field = moduleFieldSchema.parse({
+      id: '7', api_name: 'cf_priority', display_name: 'Priority', type: 'picklist',
+      pick_list_values: [{ id: 'option-1', value: 'High' }],
+    })
+
+    expect(fieldOptions(field)).toEqual([{ id: 'High', label: 'High' }])
   })
 })
