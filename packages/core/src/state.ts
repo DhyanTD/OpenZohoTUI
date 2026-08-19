@@ -6,10 +6,10 @@ import type { ZodType } from 'zod'
 import { configSchema, localStateSchema, type Config, type LocalState } from './schemas.js'
 
 export function dataDirectory(): string {
-  if (process.env.OZC_DATA_DIR) return process.env.OZC_DATA_DIR
-  if (process.platform === 'win32') return join(process.env.LOCALAPPDATA ?? homedir(), 'open-zoho-connect')
-  if (process.platform === 'darwin') return join(homedir(), 'Library', 'Application Support', 'open-zoho-connect')
-  return join(process.env.XDG_DATA_HOME ?? join(homedir(), '.local', 'share'), 'open-zoho-connect')
+  if (process.env.OZT_DATA_DIR) return process.env.OZT_DATA_DIR
+  if (process.platform === 'win32') return join(process.env.LOCALAPPDATA ?? homedir(), 'open-zoho-tui')
+  if (process.platform === 'darwin') return join(homedir(), 'Library', 'Application Support', 'open-zoho-tui')
+  return join(process.env.XDG_DATA_HOME ?? join(homedir(), '.local', 'share'), 'open-zoho-tui')
 }
 
 async function readValidated<T>(path: string, schema: ZodType<T>, fallback: T): Promise<T> {
@@ -34,7 +34,7 @@ async function withLock<T>(path: string, action: () => Promise<T>): Promise<T> {
   try {
     lock = await open(`${path}.lock`, 'wx', 0o600)
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'EEXIST') throw new Error('Another ozc process is modifying local state')
+    if ((error as NodeJS.ErrnoException).code === 'EEXIST') throw new Error('Another ozt process is modifying local state')
     throw error
   }
   try {
@@ -47,7 +47,7 @@ async function withLock<T>(path: string, action: () => Promise<T>): Promise<T> {
 
 export async function readConfig(): Promise<Config> {
   return readValidated(join(dataDirectory(), 'config.json'), configSchema, {
-    brokerUrl: process.env.OZC_BROKER_URL ?? 'http://127.0.0.1:8787',
+    brokerUrl: process.env.OZT_BROKER_URL ?? 'http://127.0.0.1:8787',
   })
 }
 

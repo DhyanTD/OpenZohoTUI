@@ -2,7 +2,7 @@
 
 ## CLI Documentation
 
-`COMMANDS.md` is the canonical user-facing reference for OZC commands. Whenever
+`COMMANDS.md` is the canonical user-facing reference for OZT commands. Whenever
 changing `packages/cli/src/index.ts` or another file that affects CLI or TUI
 behavior, update `COMMANDS.md` in the same change if any command, argument,
 option, default, output format, exit code, or key binding changes.

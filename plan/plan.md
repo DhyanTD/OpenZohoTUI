@@ -1,19 +1,19 @@
 
-# OpenZohoConnect Team CLI
+# OpenZohoTui Team CLI
 
 ## Summary
 
 Yes, this is feasible. Zoho Projects v3 provides OAuth-authenticated APIs for reading projects, creating/updating tasks, changing status, moving tasks, and managing time logs. The CLI will respect each user’s existing Zoho permissions and approval rules. [Zoho Projects v3 API](https://projects.zoho.com/api-docs)
 
-Build a TypeScript team CLI named `ozc`, distributed as a private npm package. It will provide scriptable commands, interactive prompts, and an Ink-based TUI. Use only v3 endpoints; the legacy v2 API reached end-of-life on June 30, 2026. [Zoho v3 announcement](https://help.zoho.com/portal/en/community/topic/explore-v3-apis-simplified-streamlined)
+Build a TypeScript team CLI named `ozt`, distributed as a private npm package. It will provide scriptable commands, interactive prompts, and an Ink-based TUI. Use only v3 endpoints; the legacy v2 API reached end-of-life on June 30, 2026. [Zoho v3 announcement](https://help.zoho.com/portal/en/community/topic/explore-v3-apis-simplified-streamlined)
 
 ## User Flow and Commands
 
 - Company admin registers a multi-datacenter, non-browser OAuth application and deploys the authentication broker.
-- User installs with `npm install -g @company/open-zoho-connect`.
-- `ozc auth login` displays Zoho’s verification URL/code. After one browser consent, later usage remains terminal-only.
-- `ozc init` selects the default portal, project, billing preference, timezone, and optional task-list default.
-- Running `ozc` without arguments opens the TUI:
+- User installs with `npm install -g @company/open-zoho-tui`.
+- `ozt auth login` displays Zoho’s verification URL/code. After one browser consent, later usage remains terminal-only.
+- `ozt init` selects the default portal, project, billing preference, timezone, and optional task-list default.
+- Running `ozt` without arguments opens the TUI:
   - Browse assigned tasks with project/status filters.
   - Fuzzy-search by task key or name.
   - View task details.
@@ -21,10 +21,10 @@ Build a TypeScript team CLI named `ozc`, distributed as a private npm package. I
   - Change status or task list.
   - Create a task.
 - Direct command interface:
-  - `ozc task list|show|create|update|move`
-  - `ozc time start|status|stop|cancel|add|list|sync`
-  - `ozc auth login|logout|status`
-  - `ozc config get|set`
+  - `ozt task list|show|create|update|move`
+  - `ozt time start|status|stop|cancel|add|list|sync`
+  - `ozt auth login|logout|status`
+  - `ozt config get|set`
 - Accept a visible task key or Zoho ID. Search by key/name when necessary; interactive mode asks on ambiguity, while non-interactive mode returns candidates and fails.
 - Task creation supports standard fields and repeatable `--field api_name=value` custom fields. Interactive mode discovers and prompts for required layout fields.
 - `task update --status` handles workflow movement; `task move --tasklist` handles movement between task lists, including another project where Zoho permissions permit it.
@@ -51,7 +51,7 @@ Build a TypeScript team CLI named `ozc`, distributed as a private npm package. I
   - Persist it immediately so closing the terminal or rebooting does not lose it.
   - On stop, round to the nearest minute, show the calculated duration, and allow correction.
   - Convert the timer to an immutable pending time-log record before calling Zoho.
-  - If offline, retain it for `ozc time sync`.
+  - If offline, retain it for `ozt time sync`.
   - For an ambiguous timeout, inspect recent matching logs before retrying to prevent duplicates.
   - Starting another timer fails in non-interactive mode; interactive mode offers stop, cancel, or keep the existing timer.
 - Never bypass Zoho permissions, required fields, blueprint transitions, timesheet locks, or approval rules. Surface Zoho’s actionable error and preserve pending time locally when submission fails.

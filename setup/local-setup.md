@@ -1,6 +1,6 @@
 # Local Setup
 
-This guide runs OpenZohoConnect locally with Redis, the OAuth broker, and the globally linked `ozc` CLI.
+This guide runs OpenZohoTui locally with Redis, the OAuth broker, and the globally linked `ozt` CLI.
 
 ## Prerequisites
 
@@ -17,7 +17,7 @@ Open the [Zoho API Console](https://api-console.zoho.com/) and create a client w
 2. Record the client ID and client secret.
 3. Keep the client secret private. It belongs only on the broker.
 
-A redirect URL is not required because OpenZohoConnect uses Zoho's device authorization flow.
+A redirect URL is not required because OpenZohoTui uses Zoho's device authorization flow.
 
 ## Install Dependencies
 
@@ -35,14 +35,14 @@ npm run typecheck
 Create a global development link:
 
 ```bash
-npm link --workspace @company/open-zoho-connect
+npm link --workspace @company/open-zoho-tui
 ```
 
 Verify the command:
 
 ```bash
-ozc --version
-ozc --help
+ozt --version
+ozt --help
 ```
 
 The linked command runs `packages/cli/dist/index.js`. Rebuild after changing source code:
@@ -54,7 +54,7 @@ npm run build
 Remove the global link when it is no longer needed:
 
 ```bash
-npm unlink -g @company/open-zoho-connect
+npm unlink -g @company/open-zoho-tui
 ```
 
 ## Start Redis
@@ -63,7 +63,7 @@ Run Redis in the foreground with Docker:
 
 ```bash
 docker run --rm \
-  --name ozc-redis \
+  --name ozt-redis \
   -p 6379:6379 \
   redis:7-alpine
 ```
@@ -72,7 +72,7 @@ Leave that terminal running. To run Redis in the background instead:
 
 ```bash
 docker run -d \
-  --name ozc-redis \
+  --name ozt-redis \
   -p 6379:6379 \
   redis:7-alpine
 ```
@@ -86,7 +86,7 @@ docker ps
 Stop a background Redis container with:
 
 ```bash
-docker stop ozc-redis
+docker stop ozt-redis
 ```
 
 ## Configure the Broker
@@ -150,7 +150,7 @@ Expected response:
 The CLI encrypts the local Zoho refresh token. Set a development credential key containing at least 16 characters:
 
 ```bash
-export OZC_CREDENTIAL_KEY='local-development-secret-at-least-16-characters'
+export OZT_CREDENTIAL_KEY='local-development-secret-at-least-16-characters'
 ```
 
 Use the same value in future terminal sessions. A different value cannot decrypt credentials created with the original key.
@@ -158,13 +158,13 @@ Use the same value in future terminal sessions. A different value cannot decrypt
 To isolate local test data from normal application state, optionally set:
 
 ```bash
-export OZC_DATA_DIR=/tmp/ozc-local
+export OZT_DATA_DIR=/tmp/ozt-local
 ```
 
 Point the CLI at the local broker:
 
 ```bash
-ozc config set brokerUrl http://127.0.0.1:8787
+ozt config set brokerUrl http://127.0.0.1:8787
 ```
 
 ## Authenticate
@@ -172,7 +172,7 @@ ozc config set brokerUrl http://127.0.0.1:8787
 Start the Zoho device login:
 
 ```bash
-ozc auth login
+ozt auth login
 ```
 
 The command displays a Zoho verification URL and code. Open the URL, enter the code if requested, and approve access.
@@ -180,7 +180,7 @@ The command displays a Zoho verification URL and code. Open the URL, enter the c
 Check authentication afterward:
 
 ```bash
-ozc auth status
+ozt auth status
 ```
 
 Expected result:
@@ -196,7 +196,7 @@ Expected result:
 Configure a real portal and low-risk project:
 
 ```bash
-ozc init \
+ozt init \
   --portal YOUR_PORTAL_ID \
   --project YOUR_PROJECT_ID \
   --billing Billable \
@@ -206,20 +206,20 @@ ozc init \
 Test read-only commands first:
 
 ```bash
-ozc config get
-ozc task list
-ozc task show YOUR_TASK_KEY
+ozt config get
+ozt task list
+ozt task show YOUR_TASK_KEY
 ```
 
 Then test a short time entry in the low-risk project:
 
 ```bash
-ozc time add YOUR_TASK_KEY \
+ozt time add YOUR_TASK_KEY \
   --duration 5m \
-  --notes "ozc local test"
+  --notes "ozt local test"
 
-ozc time list
-ozc time sync
+ozt time list
+ozt time sync
 ```
 
 ## Use an Environment File
@@ -256,7 +256,7 @@ The broker is unavailable at the configured URL. Confirm both services are runni
 ```bash
 docker ps
 curl http://127.0.0.1:8787/health
-ozc config get brokerUrl
+ozt config get brokerUrl
 ```
 
 ### Broker Exits Immediately
@@ -271,13 +271,13 @@ Do not share that output because it may include the Zoho client secret.
 
 ### CLI Cannot Decrypt Credentials
 
-Restore the same `OZC_CREDENTIAL_KEY` used during login. To discard the isolated local test state and authenticate again:
+Restore the same `OZT_CREDENTIAL_KEY` used during login. To discard the isolated local test state and authenticate again:
 
 ```bash
-rm -rf /tmp/ozc-local
+rm -rf /tmp/ozt-local
 ```
 
-Only run that command when `OZC_DATA_DIR` is set to `/tmp/ozc-local` and the test state is no longer needed.
+Only run that command when `OZT_DATA_DIR` is set to `/tmp/ozt-local` and the test state is no longer needed.
 
 ### Linked CLI Runs Old Code
 
@@ -285,5 +285,5 @@ Rebuild the compiled packages:
 
 ```bash
 npm run build
-ozc --help
+ozt --help
 ```

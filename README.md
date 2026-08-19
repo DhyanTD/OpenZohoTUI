@@ -1,6 +1,6 @@
-# OpenZohoConnect
+# OpenZohoTui
 
-`ozc` is a private team CLI for Zoho Projects v3 task and time-log workflows. The repository contains:
+`ozt` is a private team CLI for Zoho Projects v3 task and time-log workflows. The repository contains:
 
 - `packages/cli`: command interface and Ink task browser
 - `packages/core`: validated local configuration, encrypted credentials, and timer queue
@@ -23,7 +23,7 @@ npm run typecheck
 Run the CLI from source after building the workspace dependencies:
 
 ```sh
-export OZC_CREDENTIAL_KEY='replace-with-a-long-local-secret'
+export OZT_CREDENTIAL_KEY='replace-with-a-long-local-secret'
 npm run dev:cli -- --help
 ```
 
@@ -31,13 +31,13 @@ Install a global development link:
 
 ```sh
 npm run build
-npm link --workspace @company/open-zoho-connect
-ozc --help
+npm link --workspace @company/open-zoho-tui
+ozt --help
 ```
 
-Re-run `npm run build` after changing source files. The linked `ozc` command executes `packages/cli/dist/index.js`.
+Re-run `npm run build` after changing source files. The linked `ozt` command executes `packages/cli/dist/index.js`.
 
-Non-secret state defaults to the platform application-data directory. Set `OZC_DATA_DIR` during development or testing to isolate it.
+Non-secret state defaults to the platform application-data directory. Set `OZT_DATA_DIR` during development or testing to isolate it.
 
 ## Broker
 
@@ -60,22 +60,22 @@ npm run dev:broker
 ## First Login
 
 ```sh
-ozc config set brokerUrl https://ozc-auth.example.com
-ozc auth login
-ozc init --portal PORTAL_ID --project PROJECT_ID --billing Billable --timezone UTC
-ozc task list
+ozt config set brokerUrl https://ozt-auth.example.com
+ozt auth login
+ozt init --portal PORTAL_ID --project PROJECT_ID --billing Billable --timezone UTC
+ozt task list
 ```
 
-Running `ozc` with no arguments opens the interactive Tasks, Time Logs, and
+Running `ozt` with no arguments opens the interactive Tasks, Time Logs, and
 Settings workspace. It provides searchable selectors for portals, projects,
 tasks, task lists, and statuses, so normal TUI use does not require Zoho IDs.
 
 The broker requests `ZohoProjects.tasklists.READ`,
 `ZohoProjects.custom_fields.READ`, `ZohoProjects.users.READ`, and
 `AaaServer.profile.Read` in addition to the portal, project, task, and timesheet
-scopes. Existing users must run `ozc auth logout` and authenticate once after
+scopes. Existing users must run `ozt auth logout` and authenticate once after
 deploying this version. The metadata scopes power named TUI forms; the user and
-profile scopes let task creation assign the authenticated user when OZC can
+profile scopes let task creation assign the authenticated user when OZT can
 match that account to an active project member. Otherwise, the task is created
 unassigned.
 
@@ -84,10 +84,10 @@ The Projects API origin is broker-controlled because Zoho's OAuth `api_domain` a
 ## Timer Queue
 
 ```sh
-ozc time start ABC-T12 --notes "Implementation"
-ozc time stop
-ozc time list
-ozc time sync
+ozt time start ABC-T12 --notes "Implementation"
+ozt time stop
+ozt time list
+ozt time sync
 ```
 
 Stopping a timer first creates an immutable local pending record. Failed submissions stay queued. Ambiguous network failures enter `uncertain` and are not retried automatically.

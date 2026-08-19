@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 import { Command, Option } from 'commander'
-import { billingSchema } from '@open-zoho-connect/core'
-import { ZohoError } from '@open-zoho-connect/zoho-client'
-import { isConfigKey, OzcServices } from './services.js'
+import { billingSchema } from '@open-zoho-tui/core'
+import { ZohoError } from '@open-zoho-tui/zoho-client'
+import { isConfigKey, OztServices } from './services.js'
 import { runTui } from './tui.js'
 
-const program = new Command().name('ozc').description('Zoho Projects team CLI').version('0.1.0')
+const program = new Command().name('ozt').description('Zoho Projects team CLI').version('0.1.0')
 program.option('--json', 'emit machine-readable JSON').option('--no-input', 'never prompt')
-const services = new OzcServices()
+const services = new OztServices()
 
 function output(value: unknown): void {
   if (program.opts().json) process.stdout.write(`${JSON.stringify(value)}\n`)
@@ -117,7 +117,7 @@ async function main(): Promise<void> {
   if (process.argv.length === 2) {
     if (!process.stdin.isTTY || !process.stdout.isTTY) {
       program.outputHelp()
-      throw new Error('The interactive TUI requires a terminal; use an ozc subcommand for automation')
+      throw new Error('The interactive TUI requires a terminal; use an ozt subcommand for automation')
     }
     return runTui(services)
   }

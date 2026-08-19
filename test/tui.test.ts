@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { moduleFieldSchema } from '@open-zoho-connect/zoho-client'
+import { moduleFieldSchema } from '@open-zoho-tui/zoho-client'
 import { fieldOptions, filterTasks, formatElapsed, formatMinutes, isSaveShortcut } from '../packages/cli/src/tui.js'
 
 describe('TUI task search', () => {

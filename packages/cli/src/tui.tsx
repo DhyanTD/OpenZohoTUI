@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Text, render, useApp, useInput } from 'ink'
 import Fuse from 'fuse.js'
-import type { Config, PendingLog, ActiveTimer } from '@open-zoho-connect/core'
-import type { ModuleField, Portal, Project, Task, TaskList, TaskStatus } from '@open-zoho-connect/zoho-client'
-import { ZohoError } from '@open-zoho-connect/zoho-client'
-import type { DeviceLogin, OzcServices } from './services.js'
+import type { Config, PendingLog, ActiveTimer } from '@open-zoho-tui/core'
+import type { ModuleField, Portal, Project, Task, TaskList, TaskStatus } from '@open-zoho-tui/zoho-client'
+import { ZohoError } from '@open-zoho-tui/zoho-client'
+import type { DeviceLogin, OztServices } from './services.js'
 
 type Screen = 'tasks' | 'time' | 'settings'
 type Billing = 'Billable' | 'Non Billable'
@@ -174,7 +174,7 @@ function SelectorModal({ selector, error }: { selector: SelectorState; error?: s
 
 function HelpModal({ screen }: { screen: Screen }) {
   return <Box borderStyle="round" borderColor="cyan" flexDirection="column" paddingX={1} width="100%">
-    <Text bold>OZC Help · {screen === 'tasks' ? 'Tasks' : screen === 'time' ? 'Time Logs' : 'Settings'}</Text>
+    <Text bold>OZT Help · {screen === 'tasks' ? 'Tasks' : screen === 'time' ? 'Time Logs' : 'Settings'}</Text>
     <Text>1 Tasks  2 Time Logs  3 Settings  p Project  r Refresh  ? Help  q Quit</Text>
     {screen === 'tasks' ? <>
       <Text>/ Search  ↑/↓ Select  Enter Details  n New  e Edit  m Move</Text>
@@ -194,7 +194,7 @@ function Header({ screen, project, timer, now }: {
 }) {
   return <Box flexDirection="column">
     <Box justifyContent="space-between">
-      <Text bold color="cyan">OpenZohoConnect</Text>
+      <Text bold color="cyan">OpenZohoTui</Text>
       <Text>{project ? `Project: ${project.name}` : 'No project selected'} · {timer ? `Timer ${formatElapsed(timer.startedAt, now)}` : 'Timer idle'}</Text>
     </Box>
     <Text>
@@ -297,11 +297,11 @@ function SettingsScreen({ authenticated, config, selected, project, portal, task
         {index === selected ? '›' : ' '} {label.padEnd(22)} {value}
       </Text>)}
     </Box>
-    <Box marginTop={1}><Text dimColor>OZC 0.1.0 · Zoho Projects v3</Text></Box>
+    <Box marginTop={1}><Text dimColor>OZT 0.1.0 · Zoho Projects v3</Text></Box>
   </Box>
 }
 
-function App({ services }: { services: OzcServices }) {
+function App({ services }: { services: OztServices }) {
   const { exit } = useApp()
   const [screen, setScreen] = useState<Screen>('tasks')
   const [authenticated, setAuthenticated] = useState(false)
@@ -929,7 +929,7 @@ function App({ services }: { services: OzcServices }) {
         <Text bold>{modal.message}</Text><Text>Enter/y confirm · n/Esc cancel</Text>
       </Box> : null}
       {modal.kind === 'login' ? <Box borderStyle="round" borderColor="cyan" paddingX={1} flexDirection="column" width="100%">
-        <Text bold>Authorize OZC with Zoho</Text>
+        <Text bold>Authorize OZT with Zoho</Text>
         <Text>Open: {modal.login.verificationUrlComplete ?? modal.login.verificationUrl}</Text>
         <Text>Verification code: <Text bold color="cyan">{modal.login.userCode}</Text></Text>
         <Text dimColor>Waiting for authorization… · Esc close</Text>
@@ -938,7 +938,7 @@ function App({ services }: { services: OzcServices }) {
   </Box>
 }
 
-export async function runTui(services: OzcServices): Promise<void> {
+export async function runTui(services: OztServices): Promise<void> {
   const alternateScreen = Boolean(process.stdout.isTTY)
   if (alternateScreen) process.stdout.write('\u001B[?1049h\u001B[?25l')
   try {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { elapsedMinutes, parseDuration, stopTimer } from '@open-zoho-connect/core'
-import { resolveTask } from '@open-zoho-connect/zoho-client'
+import { elapsedMinutes, parseDuration, stopTimer } from '@open-zoho-tui/core'
+import { resolveTask } from '@open-zoho-tui/zoho-client'
 
 describe('parseDuration', () => {
   it.each([['90', 90], ['1h30m', 90], ['2h', 120], ['45m', 45], ['01:30', 90]])('parses %s', (input, expected) => {

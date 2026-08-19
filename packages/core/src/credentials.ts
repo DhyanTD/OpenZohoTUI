@@ -5,9 +5,9 @@ import { credentialSchema, type Credential } from './schemas.js'
 import { dataDirectory } from './state.js'
 
 function key(): Buffer {
-  const secret = process.env.OZC_CREDENTIAL_KEY
-  if (!secret || secret.length < 16) throw new Error('OZC_CREDENTIAL_KEY must contain at least 16 characters')
-  return scryptSync(secret, 'open-zoho-connect-v1', 32)
+  const secret = process.env.OZT_CREDENTIAL_KEY
+  if (!secret || secret.length < 16) throw new Error('OZT_CREDENTIAL_KEY must contain at least 16 characters')
+  return scryptSync(secret, 'open-zoho-tui-v1', 32)
 }
 
 export async function writeCredential(value: Credential): Promise<void> {

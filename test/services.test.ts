@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { projectUserSchema } from '@open-zoho-connect/zoho-client'
+import { projectUserSchema } from '@open-zoho-tui/zoho-client'
 import { buildTaskCreatePayload, findProjectUserByEmail, formatTimeLogHours } from '../packages/cli/src/services.js'
 
 describe('task creator assignment', () => {

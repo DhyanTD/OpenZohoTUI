@@ -1,5 +1,5 @@
 {
-  "name": "@open-zoho-connect/broker",
+  "name": "@open-zoho-tui/broker",
   "private": true,
   "type": "module",
   "scripts": { "build": "tsc -p tsconfig.json" },

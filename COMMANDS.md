@@ -1,23 +1,23 @@
-# OZC Command Reference
+# OZT Command Reference
 
-This document is the canonical reference for the `ozc` command-line interface.
+This document is the canonical reference for the `ozt` command-line interface.
 It describes the commands currently implemented in `packages/cli/src/index.ts`.
 
-> Maintenance rule: any change that adds, removes, renames, or changes an `ozc`
+> Maintenance rule: any change that adds, removes, renames, or changes an `ozt`
 > command, argument, option, default, output mode, or exit code must update this
 > file in the same change.
 
 ## General Usage
 
 ```sh
-ozc [--json] [--no-input] <command>
-ozc --help
-ozc help [command]
-ozc --version
+ozt [--json] [--no-input] <command>
+ozt --help
+ozt help [command]
+ozt --version
 ```
 
-Running `ozc` without a command opens the terminal UI.
-When standard input or output is not attached to a terminal, OZC prints command
+Running `ozt` without a command opens the terminal UI.
+When standard input or output is not attached to a terminal, OZT prints command
 help and exits instead of attempting to render the TUI.
 
 ### Global Options
@@ -27,16 +27,16 @@ help and exits instead of attempting to render the TUI.
 | `--json` | Emit machine-readable JSON. Errors are also emitted as JSON. |
 | `--no-input` | Disable interactive prompts. Reserved for script-safe workflows; current commands do not prompt. |
 | `-h, --help` | Display help for the selected command. |
-| `-V, --version` | Display the installed OZC version. |
+| `-V, --version` | Display the installed OZT version. |
 
-Use `ozc help [command]` or `<command> --help` to display built-in help for a
-command group or individual command, for example `ozc help time` or
-`ozc task create --help`.
+Use `ozt help [command]` or `<command> --help` to display built-in help for a
+command group or individual command, for example `ozt help time` or
+`ozt task create --help`.
 
 Global options should be placed before the command, for example:
 
 ```sh
-ozc --json task list
+ozt --json task list
 ```
 
 Task references accepted by task and time commands may be a Zoho task ID, a
@@ -45,10 +45,10 @@ visible task key, or an unambiguous task-name search.
 ## Terminal UI
 
 ```sh
-ozc
+ozt
 ```
 
-The TUI is the primary interactive OZC experience. It opens the configured
+The TUI is the primary interactive OZT experience. It opens the configured
 project and provides Tasks, Time Logs, and Settings workspaces. Project, task,
 task-list, portal, and status choices are searchable by name; their Zoho IDs do
 not need to be entered manually.
@@ -117,7 +117,7 @@ Settings and guides the user through the missing choices.
 
 Task creation discovers task lists and custom-field metadata from Zoho. Custom
 fields are shown by display label, with named choices for metadata-backed pick
-lists. OZC assigns a new task to the authenticated Zoho user when that user can
+lists. OZT assigns a new task to the authenticated Zoho user when that user can
 be matched to an active project member; otherwise, it creates the task
 unassigned. A task list is required; the configured default is preselected when
 available. Select the `[ Save ]` row and press `Enter` when a terminal does not
@@ -130,41 +130,41 @@ Direct commands below remain available for scripting and automation.
 
 ## Authentication
 
-### `ozc auth login`
+### `ozt auth login`
 
-Start Zoho's device authorization flow. OZC prints a verification URL and code,
+Start Zoho's device authorization flow. OZT prints a verification URL and code,
 waits for authorization, and stores the resulting credential locally.
 
 ```sh
-ozc auth login
+ozt auth login
 ```
 
-The broker URL must be configured first with `ozc config set brokerUrl URL`.
+The broker URL must be configured first with `ozt config set brokerUrl URL`.
 
-### `ozc auth status`
+### `ozt auth status`
 
 Report whether a local credential exists.
 
 ```sh
-ozc auth status
+ozt auth status
 ```
 
-### `ozc auth logout`
+### `ozt auth logout`
 
 Ask the broker to revoke the refresh token, then delete the local credential.
 
 ```sh
-ozc auth logout
+ozt auth logout
 ```
 
 ## Initial Setup
 
-### `ozc init`
+### `ozt init`
 
 Initialize the portal and optional project defaults.
 
 ```sh
-ozc init --portal <id> [options]
+ozt init --portal <id> [options]
 ```
 
 | Option | Required | Meaning |
@@ -178,7 +178,7 @@ ozc init --portal <id> [options]
 Example:
 
 ```sh
-ozc init \
+ozt init \
   --portal 123456789 \
   --project 987654321 \
   --billing Billable \
@@ -200,30 +200,30 @@ Supported configuration keys are:
 | `projectsApiOrigin` | Zoho Projects API origin override. |
 | `accountsServer` | Zoho Accounts server override. |
 
-### `ozc config get [key]`
+### `ozt config get [key]`
 
 Show one configuration value, or all configuration when `key` is omitted.
 
 ```sh
-ozc config get
-ozc config get projectId
+ozt config get
+ozt config get projectId
 ```
 
-### `ozc config set <key> <value>`
+### `ozt config set <key> <value>`
 
 Set a supported configuration value.
 
 ```sh
-ozc config set brokerUrl https://ozc-auth.example.com
-ozc config set billing Billable
+ozt config set brokerUrl https://ozt-auth.example.com
+ozt config set billing Billable
 ```
 
-### `ozc config unset <key>`
+### `ozt config unset <key>`
 
 Remove an optional configuration value. `brokerUrl` cannot be unset.
 
 ```sh
-ozc config unset tasklistId
+ozt config unset tasklistId
 ```
 
 ## Tasks
@@ -231,33 +231,33 @@ ozc config unset tasklistId
 Task operations require `portalId`; showing, creating, updating, and moving a
 task also require `projectId`.
 
-### `ozc task list`
+### `ozt task list`
 
 List tasks visible in the configured project. If no project is configured, list
 tasks across the configured portal as supported by Zoho.
 
 ```sh
-ozc task list
-ozc --json task list
+ozt task list
+ozt --json task list
 ```
 
-### `ozc task show <reference>`
+### `ozt task show <reference>`
 
 Resolve a task reference and show its details.
 
 ```sh
-ozc task show ABC-T12
-ozc task show 1234567890123
+ozt task show ABC-T12
+ozt task show 1234567890123
 ```
 
-### `ozc task create`
+### `ozt task create`
 
-Create a task in the configured project. OZC assigns it to the authenticated
+Create a task in the configured project. OZT assigns it to the authenticated
 Zoho user when that user matches an active project member, and otherwise creates
 it unassigned.
 
 ```sh
-ozc task create --name <name> [options]
+ozt task create --name <name> [options]
 ```
 
 | Option | Required | Meaning |
@@ -270,20 +270,20 @@ ozc task create --name <name> [options]
 Examples:
 
 ```sh
-ozc task create --name "Investigate login timeout"
-ozc task create \
+ozt task create --name "Investigate login timeout"
+ozt task create \
   --name "Prepare release" \
   --tasklist 123456789 \
   --description "Prepare version 1.2" \
   --field cf_priority=High cf_team=Platform
 ```
 
-### `ozc task update <reference>`
+### `ozt task update <reference>`
 
 Update one or more supported task fields.
 
 ```sh
-ozc task update <reference> [options]
+ozt task update <reference> [options]
 ```
 
 | Option | Meaning |
@@ -295,32 +295,32 @@ ozc task update <reference> [options]
 Example:
 
 ```sh
-ozc task update ABC-T12 --status 123456789 --name "Updated title"
+ozt task update ABC-T12 --status 123456789 --name "Updated title"
 ```
 
-### `ozc task move <reference>`
+### `ozt task move <reference>`
 
 Move a task to another task list in the configured project.
 
 ```sh
-ozc task move <reference> --tasklist <id>
+ozt task move <reference> --tasklist <id>
 ```
 
 ## Time Tracking
 
-OZC uses a durable local timer and pending-log queue. Stopping a timer or adding
-time manually creates a local pending record; run `ozc time sync` to submit
+OZT uses a durable local timer and pending-log queue. Stopping a timer or adding
+time manually creates a local pending record; run `ozt time sync` to submit
 pending records to Zoho.
 
 Durations accept the forms supported by the duration parser, including minute
 counts and hour/minute values such as `90m`, `1h`, and `1h30m`.
 
-### `ozc time start <task>`
+### `ozt time start <task>`
 
 Start the single local timer for a task.
 
 ```sh
-ozc time start <task> [options]
+ozt time start <task> [options]
 ```
 
 | Option | Meaning |
@@ -328,52 +328,52 @@ ozc time start <task> [options]
 | `--notes <text>` | Notes saved with the eventual time log. |
 | `--billing <value>` | Override billing with `Billable` or `Non Billable`. |
 
-If billing is not supplied, OZC uses the configured default and then falls back
+If billing is not supplied, OZT uses the configured default and then falls back
 to `Non Billable`. Starting a timer while another timer is active fails.
 
 Example:
 
 ```sh
-ozc time start ABC-T12 --notes "Implementing API validation" --billing Billable
+ozt time start ABC-T12 --notes "Implementing API validation" --billing Billable
 ```
 
-### `ozc time status`
+### `ozt time status`
 
 Show the active timer, or `{ "active": false }` if no timer is running.
 
 ```sh
-ozc time status
+ozt time status
 ```
 
-### `ozc time stop`
+### `ozt time stop`
 
 Stop the active timer and put the resulting time log in the pending queue.
 
 ```sh
-ozc time stop [--duration <duration>]
+ozt time stop [--duration <duration>]
 ```
 
 Use `--duration` to override the elapsed time before the pending record is
 created.
 
 ```sh
-ozc time stop --duration 1h30m
+ozt time stop --duration 1h30m
 ```
 
-### `ozc time cancel`
+### `ozt time cancel`
 
 Discard the active timer without creating a pending time log.
 
 ```sh
-ozc time cancel
+ozt time cancel
 ```
 
-### `ozc time add <task>`
+### `ozt time add <task>`
 
 Add a manual time entry to the local pending queue.
 
 ```sh
-ozc time add <task> --duration <duration> [options]
+ozt time add <task> --duration <duration> [options]
 ```
 
 | Option | Required | Meaning |
@@ -386,19 +386,19 @@ ozc time add <task> --duration <duration> [options]
 Example:
 
 ```sh
-ozc time add ABC-T12 \
+ozt time add ABC-T12 \
   --duration 45m \
   --date 2026-08-18 \
   --notes "Code review" \
   --billing Billable
 ```
 
-### `ozc time list`
+### `ozt time list`
 
 List all locally stored pending-log records, including their queue states.
 
 ```sh
-ozc time list
+ozt time list
 ```
 
 Queue states are:
@@ -411,7 +411,7 @@ Queue states are:
 | `uncertain` | The request outcome was ambiguous and is not retried automatically. |
 | `needs_review` | The record requires manual review before it can be submitted. |
 
-### `ozc time sync`
+### `ozt time sync`
 
 Submit every `pending` record to Zoho. Successfully submitted records remain in
 the local history with the `submitted` state. Failed records return to `pending`,
@@ -420,7 +420,7 @@ except ambiguous failures, which become `uncertain`. Retrying an existing
 successful retry clears its previous error message.
 
 ```sh
-ozc time sync
+ozt time sync
 ```
 
 ## Output and Exit Codes
@@ -437,13 +437,13 @@ ozc time sync
 ## Typical Workflow
 
 ```sh
-ozc config set brokerUrl https://ozc-auth.example.com
-ozc auth login
-ozc init --portal PORTAL_ID --project PROJECT_ID --billing Billable --timezone Asia/Kolkata
+ozt config set brokerUrl https://ozt-auth.example.com
+ozt auth login
+ozt init --portal PORTAL_ID --project PROJECT_ID --billing Billable --timezone Asia/Kolkata
 
-ozc task list
-ozc time start ABC-T12 --notes "Implementation"
-ozc time status
-ozc time stop
-ozc time sync
+ozt task list
+ozt time start ABC-T12 --notes "Implementation"
+ozt time status
+ozt time stop
+ozt time sync
 ```

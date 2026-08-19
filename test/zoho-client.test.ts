@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ZohoProjectsClient } from '@open-zoho-connect/zoho-client'
+import { ZohoProjectsClient } from '@open-zoho-tui/zoho-client'
 
 function json(value: unknown): Response {
   return new Response(JSON.stringify(value), { status: 200, headers: { 'content-type': 'application/json' } })

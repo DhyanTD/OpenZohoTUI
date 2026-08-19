@@ -15,7 +15,7 @@ import {
   type ActiveTimer,
   type Config,
   type PendingLog,
-} from '@open-zoho-connect/core'
+} from '@open-zoho-tui/core'
 import {
   describeZohoError,
   resolveTask,
@@ -28,7 +28,7 @@ import {
   type Task,
   type TaskList,
   type TaskStatus,
-} from '@open-zoho-connect/zoho-client'
+} from '@open-zoho-tui/zoho-client'
 
 export interface DeviceLogin {
   attemptId: string
@@ -132,7 +132,7 @@ export function formatTimeLogHours(minutes: number): string {
   return `${hours}.${remainder}`
 }
 
-export class OzcServices {
+export class OztServices {
   private cachedAccessToken: { token: string; expiresAt: number } | undefined
   private readonly cache = new Map<string, CacheEntry<unknown>>()
 
@@ -160,7 +160,7 @@ export class OzcServices {
       return this.cachedAccessToken.token
     }
     const credential = await readCredential()
-    if (!credential) throw new Error('Not authenticated. Sign in from Settings or run ozc auth login')
+    if (!credential) throw new Error('Not authenticated. Sign in from Settings or run ozt auth login')
     const result = await this.brokerRequest('/v1/oauth/refresh', {
       method: 'POST',
       body: JSON.stringify({
@@ -175,7 +175,7 @@ export class OzcServices {
 
   private async client(): Promise<ZohoProjectsClient> {
     const [config, credential] = await Promise.all([readConfig(), readCredential()])
-    if (!credential) throw new Error('Not authenticated. Sign in from Settings or run ozc auth login')
+    if (!credential) throw new Error('Not authenticated. Sign in from Settings or run ozt auth login')
     return new ZohoProjectsClient({
       origin: config.projectsApiOrigin ?? credential.projectsApiOrigin,
       accessToken: () => this.accessToken(),
@@ -200,7 +200,7 @@ export class OzcServices {
   private currentUserEmail(): Promise<string> {
     return this.cached('oauth-user-email', 3_600_000, false, async () => {
       const credential = await readCredential()
-      if (!credential) throw new Error('Not authenticated. Sign in from Settings or run ozc auth login')
+      if (!credential) throw new Error('Not authenticated. Sign in from Settings or run ozt auth login')
       const response = await fetch(new URL('/oauth/user/info', credential.accountsServer), {
         headers: {
           accept: 'application/json',
@@ -211,7 +211,7 @@ export class OzcServices {
       const body: unknown = await response.json().catch(() => ({}))
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
-          throw new Error('Zoho cannot identify your account with the current authorization. Run `ozc auth logout`, then sign in again to grant the profile scope.')
+          throw new Error('Zoho cannot identify your account with the current authorization. Run `ozt auth logout`, then sign in again to grant the profile scope.')
         }
         throw new ZohoError(
           describeZohoError(body, `Zoho account lookup failed (${response.status})`),
