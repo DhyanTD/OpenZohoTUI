@@ -32,8 +32,17 @@ describe('broker environment', () => {
       ZOHO_CLIENT_ID: 'client', ZOHO_CLIENT_SECRET: 'secret', REDIS_URL: 'redis://127.0.0.1:6379',
     })).toMatchObject({
       BROKER_HOST: '127.0.0.1', BROKER_PORT: 8787,
+      BROKER_TRUST_PROXY: false,
       ZOHO_ACCOUNTS_SERVER: 'https://accounts.zoho.com',
       ZOHO_PROJECTS_API_ORIGIN: 'https://projectsapi.zoho.com',
     })
+  })
+
+  it('parses the proxy trust flag without treating the string false as true', () => {
+    const required = {
+      ZOHO_CLIENT_ID: 'client', ZOHO_CLIENT_SECRET: 'secret', REDIS_URL: 'redis://127.0.0.1:6379',
+    }
+    expect(parseBrokerEnvironment({ ...required, BROKER_TRUST_PROXY: 'false' }).BROKER_TRUST_PROXY).toBe(false)
+    expect(parseBrokerEnvironment({ ...required, BROKER_TRUST_PROXY: 'true' }).BROKER_TRUST_PROXY).toBe(true)
   })
 })

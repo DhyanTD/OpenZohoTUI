@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command, Option } from 'commander'
-import { billingSchema } from '@open-zoho-tui/core'
-import { ZohoError } from '@open-zoho-tui/zoho-client'
+import { billingSchema } from '@dhyantd/open-zoho-tui-core'
+import { ZohoError } from '@dhyantd/open-zoho-tui-zoho-client'
 import { isConfigKey, OztServices } from './services.js'
 import { runTui } from './tui.js'
 

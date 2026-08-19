@@ -9,13 +9,14 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "npm run build --workspace @open-zoho-tui/core && npm run build --workspace @open-zoho-tui/zoho-client && npm run build --workspace @dhyantd/open-zoho-tui && npm run build --workspace @open-zoho-tui/broker",
+    "build": "npm run build --workspace @dhyantd/open-zoho-tui-core && npm run build --workspace @dhyantd/open-zoho-tui-zoho-client && npm run build --workspace @dhyantd/open-zoho-tui && npm run build --workspace @dhyantd/open-zoho-tui-broker",
     "pretypecheck": "npm run build",
     "typecheck": "tsc --noEmit",
     "pretest": "npm run build",
     "test": "vitest run",
     "dev:cli": "tsx packages/cli/src/index.ts",
-    "dev:broker": "tsx packages/broker/src/index.ts"
+    "dev:broker": "tsx packages/broker/src/index.ts",
+    "start:broker": "npm run start --workspace @dhyantd/open-zoho-tui-broker"
   },
   "devDependencies": {
     "@types/node": "^24.2.1",
@@ -25,8 +26,8 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@open-zoho-tui/broker": "*",
-    "@open-zoho-tui/core": "*",
-    "@open-zoho-tui/zoho-client": "*"
+    "@dhyantd/open-zoho-tui-broker": "*",
+    "@dhyantd/open-zoho-tui-core": "*",
+    "@dhyantd/open-zoho-tui-zoho-client": "*"
   }
 }

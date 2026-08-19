@@ -247,6 +247,7 @@ ZOHO_ACCOUNTS_SERVER=https://accounts.zoho.com
 ZOHO_PROJECTS_API_ORIGIN=https://projectsapi.zoho.com
 BROKER_HOST=127.0.0.1
 BROKER_PORT=8787
+BROKER_TRUST_PROXY=false
 ```
 
 Start the broker normally:

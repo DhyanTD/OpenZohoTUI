@@ -7,21 +7,31 @@
 - `packages/zoho-client`: runtime-validated Zoho Projects v3 client
 - `packages/broker`: public OAuth device-flow and refresh broker backed by Redis
 
-See [COMMANDS.md](./COMMANDS.md) for the complete command reference.
+Documentation:
+
+- [COMMANDS.md](./COMMANDS.md): complete CLI and TUI reference
+- [DEPLOYMENT.md](./DEPLOYMENT.md): production broker and Redis deployment
+- [PUBLISHING.md](./PUBLISHING.md): npm release and colleague installation
+- [setup/local-setup.md](./setup/local-setup.md): local development setup
 
 ## Installation
 
-Publish `@open-zoho-tui/core`, `@open-zoho-tui/zoho-client`, and then
-`@dhyantd/open-zoho-tui` to the company npm registry. Users install only the
-CLI package:
+After the packages have been published to npm, run the TUI without a permanent
+installation:
 
 ```sh
-npm install -g @dhyantd/open-zoho-tui
+npx --yes --package=@dhyantd/open-zoho-tui@latest ozt
+```
+
+Or install the CLI package globally:
+
+```sh
+npm install --global @dhyantd/open-zoho-tui
 ozt --help
 ```
 
 The OAuth broker is deployed as a service; it is not installed on user
-machines.
+machines. See [PUBLISHING.md](./PUBLISHING.md) before the first npm release.
 
 ## Development
 
@@ -70,8 +80,10 @@ REDIS_URL
 ```
 
 Optional settings are `ZOHO_ACCOUNTS_SERVER`, `ZOHO_PROJECTS_API_ORIGIN`,
-`BROKER_HOST`, and `BROKER_PORT`. Deploy behind TLS. Request bodies and
-authorization headers are redacted from logs. Refresh and revoke requests
+`BROKER_HOST`, `BROKER_PORT`, and `BROKER_TRUST_PROXY`. Deploy behind TLS. Set
+`BROKER_TRUST_PROXY=true` only when the broker is reachable exclusively through
+a trusted reverse proxy that replaces forwarded-client headers. Request bodies
+and authorization headers are redacted from logs. Refresh and revoke requests
 require the per-installation credential returned by a completed device login.
 
 ```sh

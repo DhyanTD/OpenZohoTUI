@@ -9,8 +9,8 @@ import {
   resolveBrokerUrl,
   stopTimer,
   writeCredential,
-} from '@open-zoho-tui/core'
-import { resolveTask } from '@open-zoho-tui/zoho-client'
+} from '@dhyantd/open-zoho-tui-core'
+import { resolveTask } from '@dhyantd/open-zoho-tui-zoho-client'
 
 const originalDataDirectory = process.env.OZT_DATA_DIR
 const originalCredentialKey = process.env.OZT_CREDENTIAL_KEY

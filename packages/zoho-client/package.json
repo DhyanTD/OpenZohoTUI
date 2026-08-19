@@ -1,13 +1,22 @@
 {
-  "name": "@open-zoho-tui/zoho-client",
+  "name": "@dhyantd/open-zoho-tui-zoho-client",
   "version": "0.1.0",
+  "description": "Zoho Projects API client used by OpenZohoTui",
   "type": "module",
   "files": ["dist"],
   "exports": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "engines": { "node": ">=22" },
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DhyanTD/OpenZohoTUI.git",
+    "directory": "packages/zoho-client"
+  },
+  "publishConfig": { "access": "public" },
   "scripts": { "build": "tsc -p tsconfig.json" },
   "dependencies": {
-    "@open-zoho-tui/core": "^0.1.0",
+    "@dhyantd/open-zoho-tui-core": "^0.1.0",
     "zod": "^4.0.17"
   }
 }

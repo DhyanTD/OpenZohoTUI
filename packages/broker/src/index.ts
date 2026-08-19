@@ -10,6 +10,7 @@ const env = parseBrokerEnvironment()
 
 const redis = new Redis(env.REDIS_URL, { lazyConnect: true, maxRetriesPerRequest: 2 })
 const app = Fastify({
+  trustProxy: env.BROKER_TRUST_PROXY,
   logger: { redact: ['req.headers.authorization', 'req.body', 'res.body'] },
   bodyLimit: 16 * 1024,
   requestTimeout: 15_000,
@@ -52,7 +53,14 @@ function credentialMatches(expectedHash: string, credential: string): boolean {
   return actual.length === expected.length && timingSafeEqual(actual, expected)
 }
 
-app.get('/health', async () => ({ status: 'ok' }))
+app.get('/health', async (_request, reply) => {
+  try {
+    await redis.ping()
+    return { status: 'ok' }
+  } catch {
+    return reply.code(503).send({ status: 'unavailable' })
+  }
+})
 
 app.post('/v1/oauth/device/start', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (_request, reply) => {
   const accountsServer = env.ZOHO_ACCOUNTS_SERVER

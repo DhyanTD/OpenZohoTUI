@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Text, render, useApp, useInput } from 'ink'
 import Fuse from 'fuse.js'
-import type { Config, PendingLog, ActiveTimer } from '@open-zoho-tui/core'
-import type { ModuleField, Portal, Project, Task, TaskList, TaskStatus } from '@open-zoho-tui/zoho-client'
-import { ZohoError } from '@open-zoho-tui/zoho-client'
+import type { Config, PendingLog, ActiveTimer } from '@dhyantd/open-zoho-tui-core'
+import type { ModuleField, Portal, Project, Task, TaskList, TaskStatus } from '@dhyantd/open-zoho-tui-zoho-client'
+import { ZohoError } from '@dhyantd/open-zoho-tui-zoho-client'
 import type { DeviceLogin, OztServices } from './services.js'
 
 type Screen = 'tasks' | 'time' | 'settings'

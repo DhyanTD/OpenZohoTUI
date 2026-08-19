@@ -15,7 +15,7 @@ import {
   type ActiveTimer,
   type Config,
   type PendingLog,
-} from '@open-zoho-tui/core'
+} from '@dhyantd/open-zoho-tui-core'
 import {
   describeZohoError,
   resolveTask,
@@ -28,7 +28,7 @@ import {
   type Task,
   type TaskList,
   type TaskStatus,
-} from '@open-zoho-tui/zoho-client'
+} from '@dhyantd/open-zoho-tui-zoho-client'
 
 export interface DeviceLogin {
   attemptId: string

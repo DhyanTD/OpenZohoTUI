@@ -1,8 +1,12 @@
 {
-  "name": "@open-zoho-tui/broker",
+  "name": "@dhyantd/open-zoho-tui-broker",
   "private": true,
   "type": "module",
-  "scripts": { "build": "tsc -p tsconfig.json" },
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
   "dependencies": {
     "@fastify/rate-limit": "^10.3.0",
     "fastify": "^5.5.0",

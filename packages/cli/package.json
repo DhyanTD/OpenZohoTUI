@@ -1,14 +1,25 @@
 {
   "name": "@dhyantd/open-zoho-tui",
   "version": "0.1.0",
+  "description": "Interactive terminal UI and CLI for Zoho Projects tasks and time logs",
   "type": "module",
   "bin": { "ozt": "./dist/index.js" },
   "files": ["dist"],
   "types": "./dist/index.d.ts",
+  "engines": { "node": ">=22" },
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DhyanTD/OpenZohoTUI.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/DhyanTD/OpenZohoTUI#readme",
+  "bugs": { "url": "https://github.com/DhyanTD/OpenZohoTUI/issues" },
+  "publishConfig": { "access": "public" },
   "scripts": { "build": "tsc -p tsconfig.json" },
   "dependencies": {
-    "@open-zoho-tui/core": "^0.1.0",
-    "@open-zoho-tui/zoho-client": "^0.1.0",
+    "@dhyantd/open-zoho-tui-core": "^0.1.0",
+    "@dhyantd/open-zoho-tui-zoho-client": "^0.1.0",
     "commander": "^14.0.0",
     "fuse.js": "^7.1.0",
     "ink": "^6.2.3",
