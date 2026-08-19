@@ -25,8 +25,12 @@ await app.register(rateLimit, { global: true, max: 60, timeWindow: '1 minute' })
 const scopes = [
   'ZohoProjects.portals.READ',
   'ZohoProjects.projects.READ',
+  'ZohoProjects.users.READ',
+  'ZohoProjects.tasklists.READ',
   'ZohoProjects.tasks.ALL',
   'ZohoProjects.timesheets.ALL',
+  'ZohoProjects.custom_fields.READ',
+  'AaaServer.profile.Read',
 ].join(',')
 
 const accountsServers: Record<string, string> = {

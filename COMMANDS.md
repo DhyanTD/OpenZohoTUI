@@ -17,6 +17,8 @@ ozc --version
 ```
 
 Running `ozc` without a command opens the terminal UI.
+When standard input or output is not attached to a terminal, OZC prints command
+help and exits instead of attempting to render the TUI.
 
 ### Global Options
 
@@ -46,15 +48,83 @@ visible task key, or an unambiguous task-name search.
 ozc
 ```
 
-The current TUI loads assigned tasks and supports:
+The TUI is the primary interactive OZC experience. It opens the configured
+project and provides Tasks, Time Logs, and Settings workspaces. Project, task,
+task-list, portal, and status choices are searchable by name; their Zoho IDs do
+not need to be entered manually.
+
+### Global Keys
+
+| Key | Action |
+| --- | --- |
+| `1` | Open Tasks. |
+| `2` | Open Time Logs. |
+| `3` | Open Settings. |
+| `p` | Open the searchable project selector. |
+| `r` | Refresh the active workspace and bypass its cache. |
+| `?` | Open context-sensitive help. |
+| `q` / `Esc` | Quit when no dialog or form is open. |
+
+### Task Keys
 
 | Key | Action |
 | --- | --- |
 | `Up` / `Down` | Change the selected task. |
-| `q` / `Esc` | Quit. |
+| `/` | Search by task name, key, status, or task-list name. |
+| `Enter` | Load complete details for the selected task. |
+| `n` | Create a task with a guided form. |
+| `e` | Edit the selected task's name, status, or description. |
+| `m` | Move the selected task using a named task-list selector. |
+| `t` | Start a timer for the selected task. |
+| `a` | Add manual time for the selected task. |
+| `x` | Stop and review the active timer. |
+| `Shift+X` | Cancel the active timer after confirmation. |
 
-Task actions, fuzzy filtering, and time logging inside the TUI are planned but
-are not implemented yet. Use the direct commands below for those operations.
+### Time Log Keys
+
+| Key | Action |
+| --- | --- |
+| `Up` / `Down` | Change the selected local time-log record. |
+| `a` | Select a task and add time manually. |
+| `s` | Synchronize all pending logs with Zoho. |
+| `x` | Stop and review the active timer. |
+| `Shift+X` | Cancel the active timer after confirmation. |
+
+### Settings Keys
+
+| Key | Action |
+| --- | --- |
+| `Up` / `Down` | Change the selected setting. |
+| `Enter` | Perform the selected action or edit the setting. |
+| `Delete` | Reset a supported optional setting. |
+
+Settings includes device login/logout, portal and project selectors, a default
+task-list selector, billing, timezone, broker URL, and advanced Zoho origins.
+When authentication, portal, or project configuration is missing, the TUI opens
+Settings and guides the user through the missing choices.
+
+### Forms and Selectors
+
+| Key | Action |
+| --- | --- |
+| `Tab` / `Shift+Tab` | Move between form fields. |
+| `Up` / `Down` | Move between form fields or selector results. |
+| `Left` / `Right` | Change a choice field. |
+| `Enter` | Choose a selector result, advance a text field, add a description newline, or submit while `[ Save ]` is selected. |
+| `Ctrl+Shift+S` | Validate and submit a form in terminals with enhanced keyboard reporting. |
+| `Alt+S` | Submit fallback for terminals that cannot distinguish `Ctrl+Shift+S` from `Ctrl+S`. |
+| `Esc` | Close the current surface; dirty forms require discard confirmation. |
+
+Task creation discovers task lists and custom-field metadata from Zoho. Custom
+fields are shown by display label, with named choices for metadata-backed pick
+lists. New tasks are assigned to the authenticated Zoho user by default. Select
+the `[ Save ]` row and press `Enter` when a terminal does not report
+`Ctrl+Shift+S`; validation and Zoho API failures remain visible in the form so
+the entered values can be corrected. Timer stop and manual-time forms can save
+locally or save and sync immediately. The active timer is durable and remains
+running after the TUI exits.
+
+Direct commands below remain available for scripting and automation.
 
 ## Authentication
 
@@ -180,7 +250,8 @@ ozc task show 1234567890123
 
 ### `ozc task create`
 
-Create a task in the configured project.
+Create a task in the configured project and assign it to the authenticated Zoho
+user. The user must be an active member of the configured project.
 
 ```sh
 ozc task create --name <name> [options]
@@ -341,7 +412,9 @@ Queue states are:
 
 Submit every `pending` record to Zoho. Successfully submitted records remain in
 the local history with the `submitted` state. Failed records return to `pending`,
-except ambiguous failures, which become `uncertain`.
+except ambiguous failures, which become `uncertain`. Retrying an existing
+`pending` record is safe after correcting a validation or endpoint error; a
+successful retry clears its previous error message.
 
 ```sh
 ozc time sync

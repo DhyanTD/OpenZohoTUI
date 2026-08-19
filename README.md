@@ -66,6 +66,17 @@ ozc init --portal PORTAL_ID --project PROJECT_ID --billing Billable --timezone U
 ozc task list
 ```
 
+Running `ozc` with no arguments opens the interactive Tasks, Time Logs, and
+Settings workspace. It provides searchable selectors for portals, projects,
+tasks, task lists, and statuses, so normal TUI use does not require Zoho IDs.
+
+The broker requests `ZohoProjects.tasklists.READ`,
+`ZohoProjects.custom_fields.READ`, `ZohoProjects.users.READ`, and
+`AaaServer.profile.Read` in addition to the portal, project, task, and timesheet
+scopes. Existing users must run `ozc auth logout` and authenticate once after
+deploying this version. The metadata scopes power named TUI forms; the user and
+profile scopes let task creation assign the authenticated user by default.
+
 The Projects API origin is broker-controlled because Zoho's OAuth `api_domain` and Projects API origin are not interchangeable. Validate `ZOHO_PROJECTS_API_ORIGIN`, scopes, task mutation methods, and time-log payloads against the company sandbox before production use.
 
 ## Timer Queue

@@ -41,7 +41,7 @@ Build a TypeScript team CLI named `ozc`, distributed as a private npm package. I
   - `GET /v1/oauth/device/:attemptId`
   - `POST /v1/oauth/refresh`
 - The broker stores the Zoho client secret and short-lived device attempts in Redis. It returns successful tokens once, does not retain user refresh tokens, redacts request bodies, and rate-limits attempts.
-- Request only `ZohoProjects.portals.READ`, `ZohoProjects.projects.READ`, `ZohoProjects.tasks.ALL`, and `ZohoProjects.timesheets.ALL`; add another scope only if tenant validation proves a required metadata endpoint needs it.
+- Request `ZohoProjects.portals.READ`, `ZohoProjects.projects.READ`, `ZohoProjects.users.READ`, `ZohoProjects.tasklists.READ`, `ZohoProjects.tasks.ALL`, `ZohoProjects.timesheets.ALL`, `ZohoProjects.custom_fields.READ`, and `AaaServer.profile.Read`. The task-list and custom-field scopes support named selectors and metadata-backed TUI forms; the user and profile scopes resolve the authenticated creator's project ZPUID for default assignment.
 - Store refresh tokens in the OS credential vault through `@napi-rs/keyring`. Store non-secret configuration, cache, and timer state under the platform’s standard application-data directory with owner-only permissions.
 - Always use the `api_domain` returned by Zoho instead of hardcoding a region. Access tokens expire after one hour and are refreshed through the broker. [Zoho device-token flow](https://www.zoho.com/developer/oauth/non-browser-apps/polling-request.html)
 - Centralize v3 API access behind typed portal, project, task, metadata, and timesheet clients. Handle pagination, ISO-8601 dates, token refresh, permission errors, and `Retry-After`; Zoho documents a 200-request-per-endpoint/two-minute limit.
