@@ -101,17 +101,26 @@ time.command('cancel').action(async () => {
   await services.cancelTimer()
   output(program.opts().json ? { active: false } : 'Timer cancelled')
 })
-time.command('stop').option('--duration <duration>').action(async (options) => output(await services.stopTimer({
+time.command('stop').option('--duration <duration>', 'override elapsed time; bare numbers are minutes (also 1h or 1.5h)').action(async (options) => output(await services.stopTimer({
   ...(options.duration ? { duration: options.duration } : {}),
 })))
-time.command('add').argument('<task>').requiredOption('--duration <duration>').option('--date <yyyy-mm-dd>')
+time.command('add').argument('[task]').option('--general <name>', 'create a general time log instead of selecting a task')
+  .requiredOption('--duration <duration>', 'time spent; bare numbers are minutes (also 1h or 1.5h)').option('--date <yyyy-mm-dd>')
   .option('--notes <text>').addOption(new Option('--billing <value>').choices(['Billable', 'Non Billable']))
-  .action(async (taskRef: string, options) => output(await services.addTime(taskRef, {
-    duration: options.duration,
-    ...(options.date ? { date: options.date } : {}),
-    ...(options.notes ? { notes: options.notes } : {}),
-    ...(options.billing ? { billing: billingSchema.parse(options.billing) } : {}),
-  })))
+  .action(async (taskRef: string | undefined, options) => {
+    if (Boolean(taskRef) === Boolean(options.general)) {
+      throw new Error('Provide exactly one task reference or --general <name>')
+    }
+    const input = {
+      duration: options.duration,
+      ...(options.date ? { date: options.date } : {}),
+      ...(options.notes ? { notes: options.notes } : {}),
+      ...(options.billing ? { billing: billingSchema.parse(options.billing) } : {}),
+    }
+    output(taskRef
+      ? await services.addTime(taskRef, input)
+      : await services.addGeneralTime(String(options.general), input))
+  })
 time.command('list').action(async () => output(await services.listTimeLogs()))
 time.command('sync').action(async () => output(await services.syncTimeLogs()))
 

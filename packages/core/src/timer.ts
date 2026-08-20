@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import type { ActiveTimer, PendingLog } from './schemas.js'
 
 const durationPattern = /^(?:(\d+)h)?(?:(\d+)m)?$/i
+const decimalHoursPattern = /^(\d+\.\d+)h$/i
 
 export function parseDuration(value: string): number {
   if (/^\d+$/.test(value)) return Number(value)
@@ -9,6 +10,12 @@ export function parseDuration(value: string): number {
     const [hours, minutes] = value.split(':').map(Number) as [number, number]
     if (minutes > 59) throw new Error(`Invalid duration: ${value}`)
     return hours * 60 + minutes
+  }
+  const decimalHours = decimalHoursPattern.exec(value)
+  if (decimalHours) {
+    const minutes = Number(decimalHours[1]) * 60
+    if (Number.isInteger(minutes)) return minutes
+    throw new Error(`Invalid duration: ${value}; decimal hours must resolve to whole minutes`)
   }
   const match = durationPattern.exec(value)
   if (!match || (!match[1] && !match[2])) throw new Error(`Invalid duration: ${value}`)

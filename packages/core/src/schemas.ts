@@ -35,7 +35,8 @@ export type ActiveTimer = z.infer<typeof activeTimerSchema>
 
 export const pendingLogSchema = z.object({
   id: z.uuid(),
-  taskRef: z.string().min(1),
+  taskRef: z.string().min(1).optional(),
+  generalName: z.string().trim().min(1).max(1000).optional(),
   projectId: z.string().min(1),
   date: z.iso.date(),
   minutes: z.number().int().positive(),
@@ -45,6 +46,14 @@ export const pendingLogSchema = z.object({
   createdAt: z.iso.datetime(),
   zohoId: z.string().optional(),
   lastError: z.string().optional(),
+}).superRefine((log, context) => {
+  if (Boolean(log.taskRef) === Boolean(log.generalName)) {
+    context.addIssue({
+      code: 'custom',
+      message: 'A time log must target exactly one task or general activity',
+      path: ['taskRef'],
+    })
+  }
 })
 export type PendingLog = z.infer<typeof pendingLogSchema>
 

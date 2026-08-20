@@ -85,7 +85,7 @@ not need to be entered manually.
 | Key | Action |
 | --- | --- |
 | `Up` / `Down` | Change the selected local time-log record. |
-| `a` | Select a task and add time manually. |
+| `a` | Fuzzy-search for a task or add a named general time log. |
 | `s` | Synchronize all pending logs with Zoho. |
 | `x` | Stop and review the active timer. |
 | `Shift+X` | Cancel the active timer after confirmation. |
@@ -125,6 +125,11 @@ report `Ctrl+Shift+S`; validation and Zoho API failures remain visible in the
 form so the entered values can be corrected. Timer stop and manual-time forms
 can save locally or save and sync immediately. The active timer is durable and
 remains running after the TUI exits.
+
+The manual-time selector always includes a **General time log** choice. Task
+results use fuzzy matching. If no task matches, the general choice becomes the
+only result, and the search text is prefilled as its required activity name
+(for example, `Team meeting`). It can also be selected when tasks do match.
 
 Direct commands below remain available for scripting and automation.
 
@@ -324,8 +329,10 @@ OZT uses a durable local timer and pending-log queue. Stopping a timer or adding
 time manually creates a local pending record; run `ozt time sync` to submit
 pending records to Zoho.
 
-Durations accept the forms supported by the duration parser, including minute
-counts and hour/minute values such as `90m`, `1h`, and `1h30m`.
+A bare duration is minutes, so `30` means 30 minutes. Unit-based and clock
+formats are also accepted: `30m`, `1h`, `1.5h`, `1h30m`, and `01:30`. Unit
+suffixes are case-insensitive, so `1.5H` also works. Decimal hours must resolve
+to a whole number of minutes.
 
 ### `ozt time start <task>`
 
@@ -380,17 +387,21 @@ Discard the active timer without creating a pending time log.
 ozt time cancel
 ```
 
-### `ozt time add <task>`
+### `ozt time add [task]`
 
-Add a manual time entry to the local pending queue.
+Add either a task-linked or named general time entry to the local pending queue.
+Provide exactly one task reference or `--general <name>`.
 
 ```sh
-ozt time add <task> --duration <duration> [options]
+ozt time add [task] --duration <duration> [options]
+ozt time add --general <name> --duration <duration> [options]
 ```
 
 | Option | Required | Meaning |
 | --- | --- | --- |
-| `--duration <duration>` | Yes | Time spent. |
+| `[task]` | Conditional | Task reference. Required unless `--general` is supplied. |
+| `--general <name>` | Conditional | General activity name, such as a meeting. Cannot be combined with a task reference. |
+| `--duration <duration>` | Yes | Time spent; a bare number is minutes. Also accepts values such as `1h`, `1.5h`, and `1h30m`. |
 | `--date <yyyy-mm-dd>` | No | Work date; defaults to the current UTC date. |
 | `--notes <text>` | No | Time-log notes; defaults to an empty string. |
 | `--billing <value>` | No | Override with `Billable` or `Non Billable`. |
@@ -403,6 +414,11 @@ ozt time add ABC-T12 \
   --date 2026-08-18 \
   --notes "Code review" \
   --billing Billable
+
+ozt time add \
+  --general "Team meeting" \
+  --duration 30m \
+  --notes "Weekly engineering sync"
 ```
 
 ### `ozt time list`
@@ -457,5 +473,6 @@ ozt task list
 ozt time start ABC-T12 --notes "Implementation"
 ozt time status
 ozt time stop
+ozt time add --general "Team meeting" --duration 30m
 ozt time sync
 ```

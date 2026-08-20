@@ -516,6 +516,26 @@ export class OztServices {
     return pending
   }
 
+  async addGeneralTime(name: string, input: AddTimeInput): Promise<PendingLog> {
+    const config = await readConfig()
+    if (!config.projectId) throw new Error('Select a project before adding time')
+    const generalName = name.trim()
+    if (!generalName) throw new Error('General activity name is required')
+    const pending: PendingLog = {
+      id: randomUUID(),
+      generalName,
+      projectId: config.projectId,
+      date: input.date ?? new Date().toISOString().slice(0, 10),
+      minutes: parseDuration(input.duration),
+      notes: input.notes ?? '',
+      billing: input.billing ?? config.billing ?? 'Non Billable',
+      state: 'pending',
+      createdAt: new Date().toISOString(),
+    }
+    await updateState((state) => ({ ...state, pendingLogs: [...state.pendingLogs, pending] }))
+    return pending
+  }
+
   async listTimeLogs(): Promise<PendingLog[]> {
     return (await readState()).pendingLogs
   }
@@ -530,14 +550,20 @@ export class OztServices {
         pendingLogs: current.pendingLogs.map((item) => item.id === log.id ? { ...item, state: 'submitting' } : item),
       }))
       try {
-        const tasks = await client.listTasks(portalId, log.projectId)
-        const match = resolveTask(log.taskRef, tasks)
-        const zohoId = await client.addTimeLog(portalId, log.projectId, match.id, {
+        const input = {
           date: log.date,
           hours: formatTimeLogHours(log.minutes),
           bill_status: log.billing,
           notes: log.notes,
-        })
+        }
+        let zohoId: string
+        if (log.taskRef) {
+          const tasks = await client.listTasks(portalId, log.projectId)
+          const match = resolveTask(log.taskRef, tasks)
+          zohoId = await client.addTimeLog(portalId, log.projectId, match.id, input)
+        } else {
+          zohoId = await client.addGeneralTimeLog(portalId, log.projectId, log.generalName!, input)
+        }
         const { lastError: _lastError, ...successfulLog } = log
         const next: PendingLog = { ...successfulLog, state: 'submitted', zohoId }
         await updateState((current) => ({

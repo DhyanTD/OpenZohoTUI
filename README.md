@@ -52,7 +52,8 @@ keyboard-friendly front door.
 - Select projects, task lists, statuses, portals, and metadata-backed custom
   fields by name.
 - Start, stop, review, and cancel a durable local timer.
-- Add time manually and synchronize pending logs with Zoho.
+- Add task-linked or general time manually and synchronize pending logs with
+  Zoho—meetings count even when they did not have the courtesy to become a ticket.
 - Preserve failed time submissions locally instead of quietly eating your
   Tuesday afternoon.
 - Use direct commands with JSON output for scripts and automation.
@@ -195,7 +196,7 @@ Useful TUI keys:
 | `/` | Search tasks. |
 | `n` / `e` / `m` | Create, edit, or move a task. |
 | `t` | Start a timer for the selected task. |
-| `a` | Add time manually. |
+| `a` | Add task-linked or general time manually. |
 | `x` / `Shift+X` | Stop or cancel the active timer. |
 | `p` | Select a project by name. |
 | `r` | Refresh the active workspace. |
@@ -211,6 +212,7 @@ ozt task show WEB-T42
 ozt task create --name "Investigate login timeout"
 ozt time start WEB-T42 --notes "Debugging session expiry"
 ozt time stop
+ozt time add --general "Team meeting" --duration 30m
 ozt time sync
 ozt --json time list
 ```

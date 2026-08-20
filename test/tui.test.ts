@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { moduleFieldSchema } from '@dhyantd/open-zoho-tui-zoho-client'
-import { fieldOptions, filterTasks, formatElapsed, formatMinutes, isSaveShortcut } from '../packages/cli/src/tui.js'
+import { fieldOptions, filterTasks, formatElapsed, formatMinutes, isSaveShortcut, manualTimeChoices } from '../packages/cli/src/tui.js'
 
 describe('TUI task search', () => {
   const tasks = [
@@ -16,6 +16,26 @@ describe('TUI task search', () => {
     expect(filterTasks(tasks, 'authentication').map(({ id }) => id)).toEqual(['1'])
     expect(filterTasks(tasks, 'ABC-T2').map(({ id }) => id)).toEqual(['2'])
     expect(filterTasks(tasks, 'progress').map(({ id }) => id)).toEqual(['2'])
+  })
+})
+
+describe('TUI manual time selector', () => {
+  const choices = [
+    { id: '1', label: 'ABC-T1 · Build authentication' },
+    { id: '2', label: 'ABC-T2 · Document command line' },
+  ]
+
+  it('fuzzy-searches tasks while keeping general time available', () => {
+    expect(manualTimeChoices(choices, 'authentcation').map(({ label }) => label)).toEqual([
+      'ABC-T1 · Build authentication',
+      'General time log · authentcation',
+    ])
+  })
+
+  it('turns an unmatched search into the selectable general activity name', () => {
+    expect(manualTimeChoices(choices, 'Team meeting')).toEqual([
+      expect.objectContaining({ label: 'General time log · Team meeting' }),
+    ])
   })
 })
 

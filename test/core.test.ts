@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
   elapsedMinutes,
+  pendingLogSchema,
   parseDuration,
   readCredential,
   resolveBrokerUrl,
@@ -23,11 +24,16 @@ afterEach(() => {
 })
 
 describe('parseDuration', () => {
-  it.each([['90', 90], ['1h30m', 90], ['2h', 120], ['45m', 45], ['01:30', 90]])('parses %s', (input, expected) => {
+  it.each([
+    ['90', 90], ['1h30m', 90], ['2h', 120], ['1.5H', 90], ['0.25h', 15], ['45m', 45], ['01:30', 90],
+  ])('parses %s', (input, expected) => {
     expect(parseDuration(input)).toBe(expected)
   })
 
   it('rejects invalid minutes', () => expect(() => parseDuration('1:90')).toThrow('Invalid duration'))
+  it('rejects decimal hours that produce a fraction of a minute', () => {
+    expect(() => parseDuration('1.333h')).toThrow('whole minutes')
+  })
 })
 
 describe('timers', () => {
@@ -48,6 +54,30 @@ describe('timers', () => {
       id: crypto.randomUUID(), taskRef: 'ABC-T1', projectId: 'p1', startedAt: '2026-08-10T23:30:00.000Z', billing: 'Billable',
     }, new Date('2026-08-11T00:30:00.000Z'), undefined, 'America/Los_Angeles')
     expect(log.date).toBe('2026-08-10')
+  })
+})
+
+describe('pending time-log targets', () => {
+  const base = {
+    id: crypto.randomUUID(),
+    projectId: 'p1',
+    date: '2026-08-20',
+    minutes: 30,
+    notes: '',
+    billing: 'Non Billable',
+    state: 'pending',
+    createdAt: '2026-08-20T10:00:00.000Z',
+  }
+
+  it('accepts old task-linked records and new general records', () => {
+    expect(pendingLogSchema.parse({ ...base, taskRef: 'ABC-T1' }).taskRef).toBe('ABC-T1')
+    expect(pendingLogSchema.parse({ ...base, generalName: 'Team meeting' }).generalName).toBe('Team meeting')
+  })
+
+  it('requires exactly one target', () => {
+    expect(() => pendingLogSchema.parse(base)).toThrow('exactly one task or general activity')
+    expect(() => pendingLogSchema.parse({ ...base, taskRef: 'ABC-T1', generalName: 'Meeting' }))
+      .toThrow('exactly one task or general activity')
   })
 })
 

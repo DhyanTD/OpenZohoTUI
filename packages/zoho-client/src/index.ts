@@ -176,6 +176,9 @@ const singleTimeLogSchema = z.union([
   z.object({
     timelogs: z.object({ tasklogs: z.array(timeLogSchema).min(1) }),
   }).transform(({ timelogs }) => timelogs.tasklogs[0]!),
+  z.object({
+    timelogs: z.object({ generallogs: z.array(timeLogSchema).min(1) }),
+  }).transform(({ timelogs }) => timelogs.generallogs[0]!),
 ])
 
 export class ZohoProjectsClient {
@@ -352,6 +355,23 @@ export class ZohoProjectsClient {
       {
         method: 'POST',
         body: JSON.stringify({ ...input, module: { id: taskId, type: 'task' } }),
+      },
+    )
+    return result.id
+  }
+
+  async addGeneralTimeLog(
+    portalId: string,
+    projectId: string,
+    name: string,
+    input: Record<string, unknown>,
+  ): Promise<string> {
+    const result = await this.request(
+      `/api/v3/portal/${encodeURIComponent(portalId)}/projects/${encodeURIComponent(projectId)}/log`,
+      singleTimeLogSchema,
+      {
+        method: 'POST',
+        body: JSON.stringify({ ...input, log_name: name, module: { type: 'general' } }),
       },
     )
     return result.id

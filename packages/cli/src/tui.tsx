@@ -24,7 +24,7 @@ interface FormField {
 }
 
 interface FormState {
-  kind: 'create' | 'edit' | 'start' | 'stop' | 'add' | 'config'
+  kind: 'create' | 'edit' | 'start' | 'stop' | 'add' | 'addGeneral' | 'config'
   title: string
   fields: FormField[]
   active: number
@@ -56,6 +56,7 @@ type Modal =
 const builtInTaskFields = new Set([
   'id', 'key', 'name', 'description', 'status', 'tasklist', 'project', 'priority', 'due_date', 'assignee',
 ])
+const generalTimeChoiceId = '__ozt_general_time_log__'
 
 export function filterTasks(tasks: Task[], query: string): Task[] {
   const normalized = query.trim().toLowerCase()
@@ -64,6 +65,30 @@ export function filterTasks(tasks: Task[], query: string): Task[] {
   if (exact.length > 0) return exact
   const fuse = new Fuse(tasks, { keys: ['name', 'key', 'status.name', 'tasklist.name'], threshold: 0.35 })
   return fuse.search(query).map(({ item }) => item)
+}
+
+export function manualTimeChoices(items: Choice[], query: string): Choice[] {
+  const normalized = query.trim().toLowerCase()
+  let matches = items
+  if (normalized) {
+    const exact = items.filter(({ id, label }) => id.toLowerCase() === normalized || label.toLowerCase() === normalized)
+    matches = exact.length > 0
+      ? exact
+      : new Fuse(items, { keys: ['label'], threshold: 0.35 }).search(query).map(({ item }) => item)
+  }
+  const activity = query.trim()
+  return [...matches, {
+    id: generalTimeChoiceId,
+    label: activity
+      ? `General time log · ${activity}`
+      : 'General time log · meeting, admin, or other activity',
+  }]
+}
+
+function selectorChoices(selector: SelectorState): Choice[] {
+  if (selector.purpose === 'manualTask') return manualTimeChoices(selector.items, selector.query)
+  const normalized = selector.query.toLowerCase()
+  return selector.items.filter(({ label }) => label.toLowerCase().includes(normalized))
 }
 
 export function formatElapsed(startedAt: string, now = Date.now()): string {
@@ -154,14 +179,17 @@ function FormModal({ form, error }: { form: FormState; error?: string }) {
 }
 
 function SelectorModal({ selector, error }: { selector: SelectorState; error?: string }) {
-  const normalized = selector.query.toLowerCase()
-  const filtered = selector.items.filter(({ label }) => label.toLowerCase().includes(normalized))
+  const filtered = selectorChoices(selector)
   const selected = clamp(selector.selected, filtered.length)
   const start = Math.max(0, selected - 6)
   return <Box borderStyle="round" borderColor="cyan" flexDirection="column" paddingX={1} width="100%">
     <Text bold>{selector.title}</Text>
     <Text>Search: {selector.query}<Text inverse> </Text></Text>
-    <Text dimColor>Type to filter · ↑/↓ navigate · Enter select · Esc cancel</Text>
+    <Text dimColor>
+      {selector.purpose === 'manualTask'
+        ? 'Type to fuzzy-search tasks · choose General time log for meetings or other work · ↑/↓ · Enter'
+        : 'Type to filter · ↑/↓ navigate · Enter select · Esc cancel'}
+    </Text>
     <Box flexDirection="column" marginTop={1}>
       {filtered.length === 0 ? <Text dimColor>No matching options</Text> : filtered.slice(start, start + 13).map((item, offset) => {
         const active = start + offset === selected
@@ -180,7 +208,7 @@ function HelpModal({ screen }: { screen: Screen }) {
       <Text>/ Search  ↑/↓ Select  Enter Details  n New  e Edit  m Move</Text>
       <Text>t Start timer  a Add time  x Stop timer  X Cancel timer</Text>
     </> : null}
-    {screen === 'time' ? <Text>↑/↓ Select  a Add time  s Sync pending  x Stop timer  X Cancel timer</Text> : null}
+    {screen === 'time' ? <Text>↑/↓ Select  a Add task/general time  s Sync pending  x Stop timer  X Cancel timer</Text> : null}
     {screen === 'settings' ? <Text>↑/↓ Select  Enter Change/action  Delete Reset optional value</Text> : null}
     <Text dimColor>Press Esc or ? to close</Text>
   </Box>
@@ -258,11 +286,12 @@ function TimeScreen({ logs, selected, timer, now, loading }: {
     </Box> : <Text dimColor>No active timer</Text>}
     <Box marginTop={1} flexDirection="column">
       <Text bold>Local time-log queue</Text>
-      <Text dimColor>{loading ? 'Syncing…' : `${logs.length} records`} · a add time · s sync pending</Text>
+      <Text dimColor>{loading ? 'Syncing…' : `${logs.length} records`} · a add task/general time · s sync pending</Text>
       {logs.length === 0 ? <Text dimColor>No local time logs yet.</Text> : logs.slice(Math.max(0, selected - 8), selected + 9).map((log, offset) => {
         const index = Math.max(0, selected - 8) + offset
+        const target = log.generalName ? `General: ${log.generalName}` : log.taskRef
         return <Text key={log.id} inverse={index === selected} wrap="truncate-end">
-          {index === selected ? '›' : ' '} [{log.state}] {log.date} · {log.taskRef} · {formatMinutes(log.minutes)} · {log.billing}
+          {index === selected ? '›' : ' '} [{log.state}] {log.date} · {target} · {formatMinutes(log.minutes)} · {log.billing}
           {log.lastError ? ` · ${log.lastError}` : ''}
         </Text>
       })}
@@ -516,7 +545,7 @@ function App({ services }: { services: OztServices }) {
     setModal({ kind: 'form', form: makeForm({
       kind: 'stop', title: `Stop timer · ${timer.taskRef}`, taskRef: timer.taskRef,
       fields: [
-        { name: 'duration', label: 'Duration', value: String(elapsed), type: 'text', required: true },
+        { name: 'duration', label: 'Duration (30 = min; 1h; 1.5h)', value: String(elapsed), type: 'text', required: true },
         { name: 'date', label: 'Work date', value: today(config?.timezone), type: 'text', required: true },
         { name: 'notes', label: 'Notes', value: timer.notes ?? '', type: 'multiline' },
         { name: 'billing', label: 'Billing', value: timer.billing, type: 'choice', options: billingChoices() },
@@ -531,7 +560,23 @@ function App({ services }: { services: OztServices }) {
     setModal({ kind: 'form', form: makeForm({
       kind: 'add', title: `Add time · ${task.key ?? task.id}`, taskRef: task.id,
       fields: [
-        { name: 'duration', label: 'Duration', value: '', type: 'text', required: true },
+        { name: 'duration', label: 'Duration (30 = min; 1h; 1.5h)', value: '', type: 'text', required: true },
+        { name: 'date', label: 'Work date', value: today(config?.timezone), type: 'text', required: true },
+        { name: 'notes', label: 'Notes', value: '', type: 'multiline' },
+        { name: 'billing', label: 'Billing', value: config?.billing ?? 'Non Billable', type: 'choice', options: billingChoices() },
+        { name: 'sync', label: 'After saving', value: 'local', type: 'choice', options: [
+          { id: 'local', label: 'Save locally' }, { id: 'sync', label: 'Save and sync now' },
+        ] },
+      ],
+    }) })
+  }
+
+  function openGeneralAdd(initialName = ''): void {
+    setModal({ kind: 'form', form: makeForm({
+      kind: 'addGeneral', title: 'Add general time',
+      fields: [
+        { name: 'name', label: 'Activity name', value: initialName.trim(), type: 'text', required: true },
+        { name: 'duration', label: 'Duration (30 = min; 1h; 1.5h)', value: '', type: 'text', required: true },
         { name: 'date', label: 'Work date', value: today(config?.timezone), type: 'text', required: true },
         { name: 'notes', label: 'Notes', value: '', type: 'multiline' },
         { name: 'billing', label: 'Billing', value: config?.billing ?? 'Non Billable', type: 'choice', options: billingChoices() },
@@ -571,7 +616,7 @@ function App({ services }: { services: OztServices }) {
           ...values.map(({ id, name }) => ({ id, label: name })),
         ]
       } else {
-        title = 'Select task for manual time'
+        title = 'Select task or enter a general time log'
         items = tasks.map((task) => ({ id: task.id, label: `${task.key ?? task.id} · ${task.name}` }))
       }
       setModal({ kind: 'selector', purpose, title, items, selected: 0, query: '' })
@@ -646,6 +691,19 @@ function App({ services }: { services: OztServices }) {
           setLogs(await services.listTimeLogs())
         }
         setToast('Time entry saved')
+      } else if (form.kind === 'addGeneral') {
+        await services.addGeneralTime(valueOf(form, 'name'), {
+          duration: valueOf(form, 'duration'),
+          date: valueOf(form, 'date'),
+          notes: valueOf(form, 'notes'),
+          billing: valueOf(form, 'billing') as Billing,
+        })
+        setLogs(await services.listTimeLogs())
+        if (valueOf(form, 'sync') === 'sync') {
+          await services.syncTimeLogs()
+          setLogs(await services.listTimeLogs())
+        }
+        setToast('General time entry saved')
       } else if (form.kind === 'config') {
         const next = await services.setConfig(form.configKey!, valueOf(form, 'value'))
         setConfig(next)
@@ -656,8 +714,7 @@ function App({ services }: { services: OztServices }) {
   }
 
   async function selectItem(selector: SelectorState): Promise<void> {
-    const normalized = selector.query.toLowerCase()
-    const items = selector.items.filter(({ label }) => label.toLowerCase().includes(normalized))
+    const items = selectorChoices(selector)
     const item = items[clamp(selector.selected, items.length)]
     if (!item) return
     setBusy(true)
@@ -697,6 +754,10 @@ function App({ services }: { services: OztServices }) {
         setConfig(next)
         setModal(undefined)
         setToast('Default task list updated')
+        return
+      }
+      if (item.id === generalTimeChoiceId) {
+        openGeneralAdd(selector.query)
         return
       }
       const selected = tasks.find(({ id }) => id === item.id)
