@@ -4,6 +4,13 @@ import rateLimit from '@fastify/rate-limit'
 import { Redis } from 'ioredis'
 import { z } from 'zod'
 import { loadBrokerEnvFile, parseBrokerEnvironment } from './environment.js'
+import {
+  accountsServerOrigin,
+  createTrustedAccountsServerOrigins,
+  resolveOAuthBinding,
+  serializeOAuthBinding,
+  trustedAccountsServerOrigin,
+} from './oauth-binding.js'
 
 loadBrokerEnvFile()
 const env = parseBrokerEnvironment()
@@ -33,6 +40,10 @@ const accountsServers: Record<string, string> = {
   au: 'https://accounts.zoho.com.au', jp: 'https://accounts.zoho.jp', ca: 'https://accounts.zohocloud.ca',
   sa: 'https://accounts.zoho.sa', uk: 'https://accounts.zoho.uk',
 }
+const trustedAccountsServerOrigins = createTrustedAccountsServerOrigins([
+  ...Object.values(accountsServers),
+  env.ZOHO_ACCOUNTS_SERVER,
+])
 const projectsOrigins: Record<string, string> = {
   us: 'https://projectsapi.zoho.com', eu: 'https://projectsapi.zoho.eu', in: 'https://projectsapi.zoho.in',
   au: 'https://projectsapi.zoho.com.au', jp: 'https://projectsapi.zoho.jp', ca: 'https://projectsapi.zohocloud.ca',
@@ -40,7 +51,8 @@ const projectsOrigins: Record<string, string> = {
 }
 
 function locationForAccountsServer(accountsServer: string): string | undefined {
-  return Object.entries(accountsServers).find(([, server]) => server === accountsServer)?.[0]
+  const origin = accountsServerOrigin(accountsServer)
+  return Object.entries(accountsServers).find(([, server]) => server === origin)?.[0]
 }
 
 function tokenHash(token: string): string {
@@ -63,7 +75,7 @@ app.get('/health', async (_request, reply) => {
 })
 
 app.post('/v1/oauth/device/start', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (_request, reply) => {
-  const accountsServer = env.ZOHO_ACCOUNTS_SERVER
+  const accountsServer = accountsServerOrigin(env.ZOHO_ACCOUNTS_SERVER)
   const body = new URLSearchParams({
     grant_type: 'device_request', client_id: env.ZOHO_CLIENT_ID, scope: scopes, access_type: 'offline', prompt: 'consent',
   })
@@ -85,7 +97,10 @@ app.get('/v1/oauth/device/:attemptId', { config: { rateLimit: { max: 20, timeWin
   const { attemptId } = z.object({ attemptId: z.uuid() }).parse(request.params)
   const raw = await redis.get(`device:${attemptId}`)
   if (!raw) return reply.code(404).send({ error: 'Device attempt expired or consumed' })
-  const attempt = z.object({ deviceCode: z.string(), accountsServer: z.url() }).parse(JSON.parse(raw))
+  const storedAttempt = z.object({ deviceCode: z.string(), accountsServer: z.url() }).parse(JSON.parse(raw))
+  const accountsServer = trustedAccountsServerOrigin(storedAttempt.accountsServer, trustedAccountsServerOrigins)
+  if (!accountsServer) return reply.code(502).send({ error: 'Unsupported Zoho accounts server' })
+  const attempt = { ...storedAttempt, accountsServer }
   const body = new URLSearchParams({
     client_id: env.ZOHO_CLIENT_ID, client_secret: env.ZOHO_CLIENT_SECRET, grant_type: 'device_token', code: attempt.deviceCode,
   })
@@ -107,7 +122,10 @@ app.get('/v1/oauth/device/:attemptId', { config: { rateLimit: { max: 20, timeWin
   const projectsApiOrigin = location ? projectsOrigins[location] : env.ZOHO_PROJECTS_API_ORIGIN
   await redis.multi()
     .del(`device:${attemptId}`)
-    .set(`binding:${tokenHash(tokens.refresh_token)}`, tokenHash(brokerCredential), 'EX', 60 * 60 * 24 * 365)
+    .set(`binding:${tokenHash(tokens.refresh_token)}`, serializeOAuthBinding({
+      credentialHash: tokenHash(brokerCredential),
+      accountsServer: attempt.accountsServer,
+    }), 'EX', 60 * 60 * 24 * 365)
     .exec()
   return {
     accessToken: tokens.access_token, refreshToken: tokens.refresh_token, apiDomain: tokens.api_domain,
@@ -119,12 +137,16 @@ app.get('/v1/oauth/device/:attemptId', { config: { rateLimit: { max: 20, timeWin
 const refreshBody = z.object({ refreshToken: z.string().min(1), brokerCredential: z.string().min(1), accountsServer: z.url() })
 app.post('/v1/oauth/refresh', { config: { rateLimit: { max: 15, timeWindow: '10 minutes' } } }, async (request, reply) => {
   const input = refreshBody.parse(request.body)
-  const binding = await redis.get(`binding:${tokenHash(input.refreshToken)}`)
-  if (!binding || !credentialMatches(binding, input.brokerCredential)) return reply.code(401).send({ error: 'Invalid broker credential' })
+  const binding = resolveOAuthBinding(
+    await redis.get(`binding:${tokenHash(input.refreshToken)}`),
+    input.accountsServer,
+    trustedAccountsServerOrigins,
+  )
+  if (!binding || !credentialMatches(binding.credentialHash, input.brokerCredential)) return reply.code(401).send({ error: 'Invalid broker credential' })
   const body = new URLSearchParams({
     grant_type: 'refresh_token', client_id: env.ZOHO_CLIENT_ID, client_secret: env.ZOHO_CLIENT_SECRET, refresh_token: input.refreshToken,
   })
-  const response = await fetch(new URL('/oauth/v2/token', input.accountsServer), { method: 'POST', body, signal: AbortSignal.timeout(10_000) })
+  const response = await fetch(new URL('/oauth/v2/token', binding.accountsServer), { method: 'POST', body, signal: AbortSignal.timeout(10_000) })
   if (!response.ok) return reply.code(502).send({ error: 'Zoho rejected token refresh' })
   const data = z.object({ access_token: z.string(), api_domain: z.url(), expires_in: z.number() }).parse(await response.json())
   return { accessToken: data.access_token, apiDomain: data.api_domain, expiresIn: data.expires_in }
@@ -133,10 +155,10 @@ app.post('/v1/oauth/refresh', { config: { rateLimit: { max: 15, timeWindow: '10 
 app.post('/v1/oauth/revoke', { config: { rateLimit: { max: 10, timeWindow: '10 minutes' } } }, async (request, reply) => {
   const input = refreshBody.parse(request.body)
   const key = `binding:${tokenHash(input.refreshToken)}`
-  const binding = await redis.get(key)
-  if (!binding || !credentialMatches(binding, input.brokerCredential)) return reply.code(401).send({ error: 'Invalid broker credential' })
+  const binding = resolveOAuthBinding(await redis.get(key), input.accountsServer, trustedAccountsServerOrigins)
+  if (!binding || !credentialMatches(binding.credentialHash, input.brokerCredential)) return reply.code(401).send({ error: 'Invalid broker credential' })
   const authorization = Buffer.from(`${env.ZOHO_CLIENT_ID}:${env.ZOHO_CLIENT_SECRET}`).toString('base64')
-  const response = await fetch(new URL('/oauth/v2/revoke/token', input.accountsServer), {
+  const response = await fetch(new URL('/oauth/v2/revoke/token', binding.accountsServer), {
     method: 'POST', headers: { authorization: `Basic ${authorization}` },
     body: new URLSearchParams({ token: input.refreshToken, token_type: 'refresh_token' }), signal: AbortSignal.timeout(10_000),
   })

@@ -262,6 +262,9 @@ OpenZohoTui data directories or credential files.
   endpoint is intentionally unauthenticated so a new CLI can begin login.
 - Monitor non-2xx responses, restarts, Redis availability, and unusual login
   traffic. Request bodies and authorization headers are redacted by the broker.
+- OAuth refresh and revoke calls use the accounts-server origin stored by the
+  broker during device login. Client-supplied and Redis-stored origins are
+  rejected unless they exactly match an official or operator-configured origin.
 - Preserve Redis across deploys. It contains short-lived device attempts and
   one-year hashes binding refresh tokens to individual installations. It does
   not retain completed users' plaintext refresh tokens. Losing Redis does not
