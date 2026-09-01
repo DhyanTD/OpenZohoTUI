@@ -36,8 +36,10 @@ describe('task creator assignment', () => {
     })
   })
 
-  it('formats time-log hours using Zoho v3 hour.minute notation', () => {
-    expect(formatTimeLogHours(1)).toBe('00.01')
-    expect(formatTimeLogHours(90)).toBe('01.30')
+  it('formats time-log hours using Zoho hour:minute notation', () => {
+    expect(formatTimeLogHours(1)).toBe('00:01')
+    expect(formatTimeLogHours(30)).toBe('00:30')
+    expect(formatTimeLogHours(52)).toBe('00:52')
+    expect(formatTimeLogHours(90)).toBe('01:30')
   })
 })

@@ -104,13 +104,13 @@ describe('ZohoProjectsClient discovery APIs', () => {
     const client = new ZohoProjectsClient({ origin: 'https://projectsapi.example.com', accessToken: async () => 'token', fetch: fetcher })
 
     await expect(client.addTimeLog('7', '9', '31', {
-      date: '2026-08-19', hours: '00.30', bill_status: 'Billable', notes: 'Review',
+      date: '2026-08-19', hours: '00:30', bill_status: 'Billable', notes: 'Review',
     })).resolves.toBe('71')
     const [request, init] = fetcher.mock.calls[0]!
     expect(new URL(String(request)).pathname).toBe('/api/v3/portal/7/projects/9/log')
     expect(JSON.parse(String(init?.body))).toEqual({
       date: '2026-08-19',
-      hours: '00.30',
+      hours: '00:30',
       bill_status: 'Billable',
       notes: 'Review',
       module: { id: '31', type: 'task' },
@@ -124,13 +124,13 @@ describe('ZohoProjectsClient discovery APIs', () => {
     const client = new ZohoProjectsClient({ origin: 'https://projectsapi.example.com', accessToken: async () => 'token', fetch: fetcher })
 
     await expect(client.addGeneralTimeLog('7', '9', 'Team meeting', {
-      date: '2026-08-20', hours: '01.00', bill_status: 'Non Billable', notes: 'Weekly sync',
+      date: '2026-08-20', hours: '01:00', bill_status: 'Non Billable', notes: 'Weekly sync',
     })).resolves.toBe('72')
     const [request, init] = fetcher.mock.calls[0]!
     expect(new URL(String(request)).pathname).toBe('/api/v3/portal/7/projects/9/log')
     expect(JSON.parse(String(init?.body))).toEqual({
       date: '2026-08-20',
-      hours: '01.00',
+      hours: '01:00',
       bill_status: 'Non Billable',
       notes: 'Weekly sync',
       log_name: 'Team meeting',

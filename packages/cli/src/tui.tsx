@@ -103,6 +103,36 @@ export function formatMinutes(minutes: number): string {
   return `${Math.floor(minutes / 60)}h ${String(minutes % 60).padStart(2, '0')}m`
 }
 
+export function taskForTimeLog(log: PendingLog, tasks: Task[]): Task | undefined {
+  if (!log.taskRef) return undefined
+  const reference = log.taskRef.toLowerCase()
+  return tasks.find(({ id, key }) => id.toLowerCase() === reference || key?.toLowerCase() === reference)
+}
+
+export function timeLogDetailRows(log: PendingLog, task?: Task): [string, string][] {
+  const targetRows: [string, string][] = log.generalName
+    ? [['Target type', 'General activity'], ['Activity', log.generalName]]
+    : [
+        ['Target type', 'Task'],
+        ['Task name', task?.name ?? 'Name unavailable'],
+        ['Task ID', log.taskRef ?? 'Not set'],
+        ...(task?.key ? [['Task key', task.key] as [string, string]] : []),
+      ]
+  return [
+    ...targetRows,
+    ['State', log.state],
+    ['Date', log.date],
+    ['Duration', `${formatMinutes(log.minutes)} (${log.minutes} minutes)`],
+    ['Billing', log.billing],
+    ['Notes', log.notes || 'No notes'],
+    ['Project ID', log.projectId],
+    ['Created', log.createdAt],
+    ['Zoho ID', log.zohoId ?? 'Not submitted'],
+    ['Local ID', log.id],
+    ['Last error', log.lastError ?? 'None'],
+  ]
+}
+
 export function isSaveShortcut(input: string, key: { ctrl: boolean; shift: boolean; meta: boolean }): boolean {
   return input.toLowerCase() === 's' && ((key.ctrl && key.shift) || key.meta)
 }
@@ -272,29 +302,44 @@ function TaskScreen({ tasks, selected, query, searching, detail, wide, loading }
   </Box></Box>
 }
 
-function TimeScreen({ logs, selected, timer, now, loading }: {
+function TimeScreen({ logs, tasks, selected, timer, now, wide, loading }: {
   logs: PendingLog[]
+  tasks: Task[]
   selected: number
   timer?: ActiveTimer | undefined
   now: number
+  wide: boolean
   loading: boolean
 }) {
+  const current = logs[selected]
+  const list = <Box flexDirection="column" width={wide ? '58%' : '100%'} paddingRight={wide ? 1 : 0}>
+    <Text bold>Local time-log queue</Text>
+    <Text dimColor>{loading ? 'Syncing…' : `${logs.length} records`} · a add task/general time · s sync pending</Text>
+    {logs.length === 0 ? <Text dimColor>No local time logs yet.</Text> : logs.slice(Math.max(0, selected - 8), selected + 9).map((log, offset) => {
+      const index = Math.max(0, selected - 8) + offset
+      const task = taskForTimeLog(log, tasks)
+      const target = log.generalName ? `General: ${log.generalName}` : task?.name ?? log.taskRef
+      return <Text key={log.id} inverse={index === selected} wrap="truncate-end">
+        {index === selected ? '›' : ' '} [{log.state}] {log.date} · {target} · {formatMinutes(log.minutes)} · {log.billing}
+      </Text>
+    })}
+  </Box>
+
   return <Box flexDirection="column">
     {timer ? <Box borderStyle="single" borderColor="cyan" paddingX={1}>
       <Text bold>Active: {timer.taskRef} · {formatElapsed(timer.startedAt, now)} · {timer.billing}</Text>
       <Text dimColor>  x stop · X cancel</Text>
     </Box> : <Text dimColor>No active timer</Text>}
-    <Box marginTop={1} flexDirection="column">
-      <Text bold>Local time-log queue</Text>
-      <Text dimColor>{loading ? 'Syncing…' : `${logs.length} records`} · a add task/general time · s sync pending</Text>
-      {logs.length === 0 ? <Text dimColor>No local time logs yet.</Text> : logs.slice(Math.max(0, selected - 8), selected + 9).map((log, offset) => {
-        const index = Math.max(0, selected - 8) + offset
-        const target = log.generalName ? `General: ${log.generalName}` : log.taskRef
-        return <Text key={log.id} inverse={index === selected} wrap="truncate-end">
-          {index === selected ? '›' : ' '} [{log.state}] {log.date} · {target} · {formatMinutes(log.minutes)} · {log.billing}
-          {log.lastError ? ` · ${log.lastError}` : ''}
-        </Text>
-      })}
+    <Box marginTop={1}>
+      {list}
+      {wide ? <Box borderStyle="single" flexDirection="column" width="42%" paddingX={1}>
+        {current ? <>
+          <Text bold>Time log details</Text>
+          {timeLogDetailRows(current, taskForTimeLog(current, tasks)).map(([label, value]) => (
+            <Text key={label} wrap="wrap">{label}: {value}</Text>
+          ))}
+        </> : <Text dimColor>Select a time log</Text>}
+      </Box> : null}
     </Box>
   </Box>
 }
@@ -964,7 +1009,9 @@ function App({ services }: { services: OztServices }) {
     tasks={visibleTasks} selected={clamp(selectedTask, visibleTasks.length)} query={query} searching={searching}
     detail={detail} wide={wide} loading={busy}
   />
-  else if (screen === 'time') content = <TimeScreen logs={logs} selected={clamp(selectedLog, logs.length)} timer={timer} now={now} loading={busy} />
+  else if (screen === 'time') content = <TimeScreen
+    logs={logs} tasks={tasks} selected={clamp(selectedLog, logs.length)} timer={timer} now={now} wide={wide} loading={busy}
+  />
   else content = <SettingsScreen
     authenticated={authenticated} config={config} selected={selectedSetting} project={currentProject}
     portal={currentPortal} tasklist={currentTasklist}

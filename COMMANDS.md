@@ -90,6 +90,12 @@ not need to be entered manually.
 | `x` | Stop and review the active timer. |
 | `Shift+X` | Cancel the active timer after confirmation. |
 
+On terminals at least 100 columns wide, Time Logs uses the same split layout as
+Tasks: the queue remains on the left and the selected log's complete local
+details appear on the right, including the resolved task name and ID (or general
+activity), state, date, duration, billing, notes, project and record IDs,
+creation time, and any sync error.
+
 ### Settings Keys
 
 | Key | Action |
@@ -332,7 +338,8 @@ pending records to Zoho.
 A bare duration is minutes, so `30` means 30 minutes. Unit-based and clock
 formats are also accepted: `30m`, `1h`, `1.5h`, `1h30m`, and `01:30`. Unit
 suffixes are case-insensitive, so `1.5H` also works. Decimal hours must resolve
-to a whole number of minutes.
+to a whole number of minutes. Before synchronization, OZT converts the parsed
+duration to Zoho's `HH:MM` format so minute values are preserved exactly.
 
 ### `ozt time start <task>`
 

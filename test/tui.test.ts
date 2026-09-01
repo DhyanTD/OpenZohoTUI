@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { moduleFieldSchema } from '@dhyantd/open-zoho-tui-zoho-client'
-import { fieldOptions, filterTasks, formatElapsed, formatMinutes, isSaveShortcut, manualTimeChoices } from '../packages/cli/src/tui.js'
+import {
+  fieldOptions,
+  filterTasks,
+  formatElapsed,
+  formatMinutes,
+  isSaveShortcut,
+  manualTimeChoices,
+  taskForTimeLog,
+  timeLogDetailRows,
+} from '../packages/cli/src/tui.js'
 
 describe('TUI task search', () => {
   const tasks = [
@@ -46,6 +55,86 @@ describe('TUI time formatting', () => {
 
   it('formats queued minutes for human display', () => {
     expect(formatMinutes(95)).toBe('1h 35m')
+  })
+})
+
+describe('TUI time-log details', () => {
+  it('shows every stored detail for the selected time log', () => {
+    const log = {
+      id: 'b29abe8a-8315-4eb5-9c2a-3c4bb52b1a70',
+      taskRef: '329135000001154011',
+      projectId: 'project-1',
+      date: '2026-08-20',
+      minutes: 95,
+      notes: 'Finished the integration',
+      billing: 'Billable',
+      state: 'submitted',
+      createdAt: '2026-08-20T10:00:00.000Z',
+      zohoId: 'zoho-1',
+      lastError: 'Previous attempt timed out',
+    } as const
+    const task = taskForTimeLog(log, [{
+      id: '329135000001154011',
+      key: 'ABC-T1',
+      name: 'Build authentication',
+    }])
+    const rows = timeLogDetailRows(log, task)
+
+    expect(Object.fromEntries(rows)).toEqual({
+      'Target type': 'Task',
+      'Task name': 'Build authentication',
+      'Task ID': '329135000001154011',
+      'Task key': 'ABC-T1',
+      State: 'submitted',
+      Date: '2026-08-20',
+      Duration: '1h 35m (95 minutes)',
+      Billing: 'Billable',
+      Notes: 'Finished the integration',
+      'Project ID': 'project-1',
+      Created: '2026-08-20T10:00:00.000Z',
+      'Zoho ID': 'zoho-1',
+      'Local ID': 'b29abe8a-8315-4eb5-9c2a-3c4bb52b1a70',
+      'Last error': 'Previous attempt timed out',
+    })
+  })
+
+  it('labels general logs and empty optional details clearly', () => {
+    const rows = Object.fromEntries(timeLogDetailRows({
+      id: 'b29abe8a-8315-4eb5-9c2a-3c4bb52b1a70',
+      generalName: 'Team meeting',
+      projectId: 'project-1',
+      date: '2026-08-20',
+      minutes: 30,
+      notes: '',
+      billing: 'Non Billable',
+      state: 'pending',
+      createdAt: '2026-08-20T10:00:00.000Z',
+    }))
+
+    expect(rows).toMatchObject({
+      'Target type': 'General activity',
+      Activity: 'Team meeting',
+      Notes: 'No notes',
+      'Zoho ID': 'Not submitted',
+      'Last error': 'None',
+    })
+  })
+
+  it('matches a time log to a task by either Zoho ID or visible key', () => {
+    const tasks = [{ id: '329135000001154011', key: 'ABC-T1', name: 'Build authentication' }]
+    const log = {
+      id: 'b29abe8a-8315-4eb5-9c2a-3c4bb52b1a70',
+      projectId: 'project-1',
+      date: '2026-08-20',
+      minutes: 30,
+      notes: '',
+      billing: 'Billable' as const,
+      state: 'pending' as const,
+      createdAt: '2026-08-20T10:00:00.000Z',
+    }
+
+    expect(taskForTimeLog({ ...log, taskRef: '329135000001154011' }, tasks)?.name).toBe('Build authentication')
+    expect(taskForTimeLog({ ...log, taskRef: 'abc-t1' }, tasks)?.name).toBe('Build authentication')
   })
 })
 

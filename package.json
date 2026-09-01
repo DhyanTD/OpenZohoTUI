@@ -1,13 +1,33 @@
 {
   "name": "open-zoho-tui",
+  "version": "1.0.0",
   "private": true,
+  "description": "A terminal interface to Create tasks, Time Logging and more... for the devs who hate zoho web UI",
+  "keywords": [
+    "TUI",
+    "zoho",
+    "terminal",
+    "zoho",
+    "projects"
+  ],
+  "homepage": "https://github.com/DhyanTD/OpenZohoTUI#readme",
+  "bugs": {
+    "url": "https://github.com/DhyanTD/OpenZohoTUI/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DhyanTD/OpenZohoTUI.git"
+  },
+  "license": "MIT",
+  "author": "dhyantd",
   "type": "module",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
   "workspaces": [
     "packages/*"
   ],
-  "engines": {
-    "node": ">=22"
-  },
   "scripts": {
     "build": "npm run build --workspace @dhyantd/open-zoho-tui-core && npm run build --workspace @dhyantd/open-zoho-tui-zoho-client && npm run build --workspace @dhyantd/open-zoho-tui && npm run build --workspace @dhyantd/open-zoho-tui-broker",
     "pretypecheck": "npm run build",
@@ -18,6 +38,11 @@
     "dev:broker": "tsx packages/broker/src/index.ts",
     "start:broker": "npm run start --workspace @dhyantd/open-zoho-tui-broker"
   },
+  "dependencies": {
+    "@dhyantd/open-zoho-tui-broker": "*",
+    "@dhyantd/open-zoho-tui-core": "*",
+    "@dhyantd/open-zoho-tui-zoho-client": "*"
+  },
   "devDependencies": {
     "@types/node": "^24.2.1",
     "@types/react": "^19.1.10",
@@ -25,9 +50,7 @@
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   },
-  "dependencies": {
-    "@dhyantd/open-zoho-tui-broker": "*",
-    "@dhyantd/open-zoho-tui-core": "*",
-    "@dhyantd/open-zoho-tui-zoho-client": "*"
+  "engines": {
+    "node": ">=22"
   }
 }
