@@ -90,6 +90,9 @@ not need to be entered manually.
 | `x` | Stop and review the active timer. |
 | `Shift+X` | Cancel the active timer after confirmation. |
 
+Time logs are listed newest-first by work date. Logs on the same work date are
+ordered by when they were created, with the newest first.
+
 On terminals at least 100 columns wide, Time Logs uses the same split layout as
 Tasks: the queue remains on the left and the selected log's complete local
 details appear on the right, including the resolved task name and ID (or general

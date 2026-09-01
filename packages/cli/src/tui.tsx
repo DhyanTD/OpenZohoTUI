@@ -103,6 +103,12 @@ export function formatMinutes(minutes: number): string {
   return `${Math.floor(minutes / 60)}h ${String(minutes % 60).padStart(2, '0')}m`
 }
 
+export function newestTimeLogs(logs: PendingLog[]): PendingLog[] {
+  return [...logs].sort((left, right) => (
+    right.date.localeCompare(left.date) || right.createdAt.localeCompare(left.createdAt)
+  ))
+}
+
 export function taskForTimeLog(log: PendingLog, tasks: Task[]): Task | undefined {
   if (!log.taskRef) return undefined
   const reference = log.taskRef.toLowerCase()
@@ -311,11 +317,12 @@ function TimeScreen({ logs, tasks, selected, timer, now, wide, loading }: {
   wide: boolean
   loading: boolean
 }) {
-  const current = logs[selected]
+  const orderedLogs = newestTimeLogs(logs)
+  const current = orderedLogs[selected]
   const list = <Box flexDirection="column" width={wide ? '58%' : '100%'} paddingRight={wide ? 1 : 0}>
     <Text bold>Local time-log queue</Text>
     <Text dimColor>{loading ? 'Syncing…' : `${logs.length} records`} · a add task/general time · s sync pending</Text>
-    {logs.length === 0 ? <Text dimColor>No local time logs yet.</Text> : logs.slice(Math.max(0, selected - 8), selected + 9).map((log, offset) => {
+    {orderedLogs.length === 0 ? <Text dimColor>No local time logs yet.</Text> : orderedLogs.slice(Math.max(0, selected - 8), selected + 9).map((log, offset) => {
       const index = Math.max(0, selected - 8) + offset
       const task = taskForTimeLog(log, tasks)
       const target = log.generalName ? `General: ${log.generalName}` : task?.name ?? log.taskRef

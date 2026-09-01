@@ -7,6 +7,7 @@ import {
   formatMinutes,
   isSaveShortcut,
   manualTimeChoices,
+  newestTimeLogs,
   taskForTimeLog,
   timeLogDetailRows,
 } from '../packages/cli/src/tui.js'
@@ -59,6 +60,27 @@ describe('TUI time formatting', () => {
 })
 
 describe('TUI time-log details', () => {
+  it('lists the latest work date first and newest same-day record first', () => {
+    const base = {
+      taskRef: '329135000001154011',
+      projectId: 'project-1',
+      minutes: 30,
+      notes: '',
+      billing: 'Billable' as const,
+      state: 'pending' as const,
+    }
+    const logs = [
+      { ...base, id: 'older-same-day', date: '2026-08-20', createdAt: '2026-08-20T09:00:00.000Z' },
+      { ...base, id: 'latest-work-date', date: '2026-08-31', createdAt: '2026-08-19T09:00:00.000Z' },
+      { ...base, id: 'newer-same-day', date: '2026-08-20', createdAt: '2026-08-20T10:00:00.000Z' },
+    ]
+
+    expect(newestTimeLogs(logs).map(({ id }) => id)).toEqual([
+      'latest-work-date', 'newer-same-day', 'older-same-day',
+    ])
+    expect(logs.map(({ id }) => id)).toEqual(['older-same-day', 'latest-work-date', 'newer-same-day'])
+  })
+
   it('shows every stored detail for the selected time log', () => {
     const log = {
       id: 'b29abe8a-8315-4eb5-9c2a-3c4bb52b1a70',
