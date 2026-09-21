@@ -85,6 +85,19 @@ export function manualTimeChoices(items: Choice[], query: string): Choice[] {
   }]
 }
 
+export function timeLogSyncField(): FormField {
+  return {
+    name: 'sync',
+    label: 'After saving',
+    value: 'sync',
+    type: 'choice',
+    options: [
+      { id: 'local', label: 'Save locally' },
+      { id: 'sync', label: 'Save and sync now' },
+    ],
+  }
+}
+
 function selectorChoices(selector: SelectorState): Choice[] {
   if (selector.purpose === 'manualTask') return manualTimeChoices(selector.items, selector.query)
   const normalized = selector.query.toLowerCase()
@@ -601,9 +614,7 @@ function App({ services }: { services: OztServices }) {
         { name: 'date', label: 'Work date', value: today(config?.timezone), type: 'text', required: true },
         { name: 'notes', label: 'Notes', value: timer.notes ?? '', type: 'multiline' },
         { name: 'billing', label: 'Billing', value: timer.billing, type: 'choice', options: billingChoices() },
-        { name: 'sync', label: 'After saving', value: 'local', type: 'choice', options: [
-          { id: 'local', label: 'Save locally' }, { id: 'sync', label: 'Save and sync now' },
-        ] },
+        timeLogSyncField(),
       ],
     }) })
   }
@@ -616,9 +627,7 @@ function App({ services }: { services: OztServices }) {
         { name: 'date', label: 'Work date', value: today(config?.timezone), type: 'text', required: true },
         { name: 'notes', label: 'Notes', value: '', type: 'multiline' },
         { name: 'billing', label: 'Billing', value: config?.billing ?? 'Non Billable', type: 'choice', options: billingChoices() },
-        { name: 'sync', label: 'After saving', value: 'local', type: 'choice', options: [
-          { id: 'local', label: 'Save locally' }, { id: 'sync', label: 'Save and sync now' },
-        ] },
+        timeLogSyncField(),
       ],
     }) })
   }
@@ -632,9 +641,7 @@ function App({ services }: { services: OztServices }) {
         { name: 'date', label: 'Work date', value: today(config?.timezone), type: 'text', required: true },
         { name: 'notes', label: 'Notes', value: '', type: 'multiline' },
         { name: 'billing', label: 'Billing', value: config?.billing ?? 'Non Billable', type: 'choice', options: billingChoices() },
-        { name: 'sync', label: 'After saving', value: 'local', type: 'choice', options: [
-          { id: 'local', label: 'Save locally' }, { id: 'sync', label: 'Save and sync now' },
-        ] },
+        timeLogSyncField(),
       ],
     }) })
   }

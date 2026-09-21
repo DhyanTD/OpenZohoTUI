@@ -132,8 +132,9 @@ unassigned. A task list is required; the configured default is preselected when
 available. Select the `[ Save ]` row and press `Enter` when a terminal does not
 report `Ctrl+Shift+S`; validation and Zoho API failures remain visible in the
 form so the entered values can be corrected. Timer stop and manual-time forms
-can save locally or save and sync immediately. The active timer is durable and
-remains running after the TUI exits.
+default to **Save and sync now**; **Save locally** remains available as the
+alternate choice. The active timer is durable and remains running after the TUI
+exits.
 
 The manual-time selector always includes a **General time log** choice. Task
 results use fuzzy matching. If no task matches, the general choice becomes the

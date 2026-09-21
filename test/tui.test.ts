@@ -10,6 +10,7 @@ import {
   newestTimeLogs,
   taskForTimeLog,
   timeLogDetailRows,
+  timeLogSyncField,
 } from '../packages/cli/src/tui.js'
 
 describe('TUI task search', () => {
@@ -157,6 +158,19 @@ describe('TUI time-log details', () => {
 
     expect(taskForTimeLog({ ...log, taskRef: '329135000001154011' }, tasks)?.name).toBe('Build authentication')
     expect(taskForTimeLog({ ...log, taskRef: 'abc-t1' }, tasks)?.name).toBe('Build authentication')
+  })
+})
+
+describe('TUI time-log saving', () => {
+  it('defaults time-entry forms to save and sync now', () => {
+    expect(timeLogSyncField()).toMatchObject({
+      name: 'sync',
+      value: 'sync',
+      options: expect.arrayContaining([
+        { id: 'local', label: 'Save locally' },
+        { id: 'sync', label: 'Save and sync now' },
+      ]),
+    })
   })
 })
 
